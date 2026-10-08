@@ -1,0 +1,68 @@
+:root {
+  /* Warm neutral ink scale */
+  --ink-0: #ffffff;
+  --ink-25: #fbfbf9;
+  --ink-50: #f7f7f4;
+  --ink-100: #efeee9;
+  --ink-200: #e6e4dd;
+  --ink-300: #d6d4cb;
+  --ink-400: #a9a79e;
+  --ink-500: #858378;
+  --ink-600: #6b6a62;
+  --ink-700: #4a4943;
+  --ink-800: #2a2a27;
+  --ink-850: #1e1e1c;
+  --ink-900: #161615;
+  --ink-950: #0d0d0c;
+
+  --canvas: var(--ink-50);
+  --surface: var(--ink-0);
+  --surface-raised: var(--ink-0);
+  --text-primary: var(--ink-900);
+  --text-secondary: var(--ink-600);
+  --text-tertiary: var(--ink-500);
+  --stroke: var(--ink-200);
+  --stroke-strong: var(--ink-300);
+
+  /* Default brand; overridden per workspace via inline style on the shell */
+  --brand: #e5562b;
+  --brand-foreground: #ffffff;
+  --brand-soft: color-mix(in oklab, var(--brand) 12%, transparent);
+
+  --success: #1d8a52;
+  --success-surface: #eaf6ef;
+  --success-stroke: #b9e2c9;
+  --warning: #a8670f;
+  --warning-surface: #fbf3e3;
+  --warning-stroke: #f0d7a6;
+  --danger: #d0393b;
+  --danger-surface: #fcecec;
+  --danger-stroke: #f3c1c1;
+  --info: #2f62d0;
+  --info-surface: #ebf1fc;
+  --info-stroke: #c3d4f5;
+}
+
+.dark {
+  --canvas: var(--ink-950);
+  --surface: #141413;
+  --surface-raised: #1a1a19;
+  --text-primary: #f3f2ee;
+  --text-secondary: #a3a199;
+  --text-tertiary: #7d7b73;
+  --stroke: #262624;
+  --stroke-strong: #33332f;
+
+  --success: #4cc787;
+  --success-surface: #12261b;
+  --success-stroke: #1f4430;
+  --warning: #e3a74a;
+  --warning-surface: #2a2010;
+  --warning-stroke: #4a3817;
+  --danger: #f06a6a;
+  --danger-surface: #2c1414;
+  --danger-stroke: #4d2222;
+  --info: #7aa2f7;
+  --info-surface: #131c2f;
+  --info-stroke: #22335a;
+}
