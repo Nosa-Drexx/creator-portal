@@ -1,0 +1,24 @@
+{
+  "name": "CreatorHub Studio",
+  "short_name": "CreatorHub",
+  "description": "Upload, publish and track the performance of your paid video content.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#161615",
+  "background_color": "#f7f7f4",
+  "icons": [
+    {
+      "src": "/creatorhub_favicon_set/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/creatorhub_favicon_set/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
