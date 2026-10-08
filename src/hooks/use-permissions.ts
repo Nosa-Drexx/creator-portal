@@ -19,5 +19,7 @@ export function usePermissions() {
   )
   const has = useCallback((code: Permission) => hasPermission(permissions, code), [permissions])
 
-  return { permissions, role: data?.role, loading: isPending, can, has }
+  // Without a workspace (still loading, or 404/failed) guards must not decide anything;
+  // WorkspaceGate covers those states, and acting on empty permissions caused a redirect loop
+  return { permissions, role: data?.role, loading: isPending || !data, can, has }
 }

@@ -1,9 +1,14 @@
-/** Reads duration in the browser, so creators get instant feedback before upload finishes */
-export function readVideoDuration(file: File): Promise<number | null> {
+/**
+ * Reads duration in the browser, so creators get instant feedback before upload finishes.
+ * Resolves null on unsupported codecs, and after a timeout (background tabs may never load media).
+ */
+export function readVideoDuration(file: File, timeoutMs = 8_000): Promise<number | null> {
   return new Promise((resolve) => {
     const video = document.createElement("video")
     const url = URL.createObjectURL(file)
+    const timer = setTimeout(() => done(null), timeoutMs)
     const done = (value: number | null) => {
+      clearTimeout(timer)
       URL.revokeObjectURL(url)
       resolve(value)
     }

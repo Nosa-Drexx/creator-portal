@@ -72,6 +72,8 @@ export function AreaTrendChart({
           axisLine={false}
           tickLine={false}
           interval={tickInterval}
+          // Room for the first and last date labels, which are centred on the plot edges
+          padding={{ left: 18, right: 18 }}
           tick={{ fill: "var(--text-tertiary)", fontSize: 11.5 }}
           dy={8}
         />

@@ -32,6 +32,8 @@ export function VideoField({ value, fileName, onChange, onUploadingChange, onUse
   const [duration, setDuration] = useState<number | null>(null)
   const [capturing, setCapturing] = useState(false)
   const playerRef = useRef<HTMLVideoElement>(null)
+  // Ignores results from a file that has since been replaced
+  const attemptRef = useRef(0)
   const localUrl = useObjectUrl(file)
   const { signedUrl } = useSignedUrl(file ? null : value)
   const playable = localUrl ?? signedUrl
@@ -40,11 +42,19 @@ export function VideoField({ value, fileName, onChange, onUploadingChange, onUse
   useEffect(() => onUploadingChange(uploading), [uploading, onUploadingChange])
 
   const start = async (next: File) => {
+    const attempt = ++attemptRef.current
+    let seconds: number | null = null
+    let key: string | null = null
     setFile(next)
-    const seconds = await readVideoDuration(next)
-    setDuration(seconds)
-    const key = await upload.upload(next)
-    if (key) onChange(key, seconds)
+    // Upload straight away; the duration fills in whenever the browser manages to read it
+    void readVideoDuration(next).then((value) => {
+      if (attempt !== attemptRef.current) return
+      seconds = value
+      setDuration(value)
+      if (key) onChange(key, value)
+    })
+    key = await upload.upload(next)
+    if (key && attempt === attemptRef.current) onChange(key, seconds)
   }
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
@@ -56,6 +66,7 @@ export function VideoField({ value, fileName, onChange, onUploadingChange, onUse
   })
 
   const remove = () => {
+    attemptRef.current++
     upload.reset()
     setFile(null)
     setDuration(null)
@@ -63,6 +74,7 @@ export function VideoField({ value, fileName, onChange, onUploadingChange, onUse
   }
 
   const cancel = () => {
+    attemptRef.current++
     upload.cancel()
     setFile(null)
     setDuration(null)

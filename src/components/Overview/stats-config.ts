@@ -54,7 +54,7 @@ export function buildStats(stats: OverviewStats): StatCardData[] {
       value: stats.totalPurchases,
       format: count,
       change: formatPercentChange(stats.purchasesThisMonth, stats.purchasesLastMonth),
-      caption: `${stats.purchasesThisMonth} this month`,
+      caption: `Completed · ${stats.purchasesThisMonth} this month`,
     },
   ]
 }

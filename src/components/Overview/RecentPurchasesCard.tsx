@@ -14,7 +14,7 @@ import { PURCHASE_STATUS } from "@/constants/status"
 import { EPurchaseStatus } from "@/enums/purchases"
 import { usePurchases } from "@/hooks/queries/use-purchases"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
-import { countryFlag, formatCurrency, formatTimeAgo } from "@/lib/format"
+import { countryFlag, formatPrice, formatTimeAgo } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 export function RecentPurchasesCard() {
@@ -63,7 +63,7 @@ export function RecentPurchasesCard() {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className={cn("text-[13.5px] font-bold tabular", voided && "text-text-tertiary line-through")}>
-                    {formatCurrency(purchase.amountCents)}
+                    {formatPrice(purchase.amountCents)}
                   </span>
                   {muted ? (
                     <StatusBadge tone={status.tone} label={status.label} className="h-5 px-2 text-[10.5px]" />

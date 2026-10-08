@@ -178,7 +178,7 @@ Not requested in the brief. I added it as the product improvement I chose to imp
 pnpm test
 ```
 
-There are 54 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
+There are 55 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
 
 - **The publishing rule at the endpoint:** unverified, pending and verified workspaces; create vs update; draft vs publish vs schedule.
 - **Tenant isolation:** foreign workspaces, foreign content IDs, purchase scoping, cross-tenant media signing, and per-user access.
@@ -194,6 +194,7 @@ There are 54 tests. The API tests call the **real route handlers** against a thr
   - role changes applying on the next request.
 - **Invitations:** in-app accept, email-bound links, sign up and then accept, the public preview, copying the same link again (permission enforced), and accepted, revoked or re-sent links becoming invalid.
 - **Authentication:** 401 without a session, login, identical errors for unknown email vs wrong password, rate limiting, signup, and session invalidation on logout (a replayed cookie is rejected).
+- **Purchases:** search matches countries by name as well as code.
 - **Unit tests:** the publishing rule, content payload validation, and signed URL expiry and tampering.
 
 Each change was also checked by hand in Chrome at desktop and 390px mobile widths, in light and dark themes, and with a production build (`pnpm build`).

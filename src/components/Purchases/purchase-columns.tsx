@@ -4,7 +4,7 @@ import type { DataTableColumn } from "@/components/shared/DataTable"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { PURCHASE_STATUS } from "@/constants/status"
 import { EPurchaseSort, EPurchaseStatus } from "@/enums/purchases"
-import { countryFlag, countryName, formatCurrency, formatDateTime } from "@/lib/format"
+import { countryFlag, countryName, formatPrice, formatDateTime } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { Purchase } from "@/types/purchases"
 
@@ -60,7 +60,7 @@ export const purchaseColumns: DataTableColumn<Purchase>[] = [
           isVoided(row.original.status) ? "text-text-tertiary line-through" : "text-text-primary",
         )}
       >
-        {formatCurrency(row.original.amountCents)}
+        {formatPrice(row.original.amountCents)}
       </span>
     ),
   },
