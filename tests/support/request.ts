@@ -17,3 +17,9 @@ export const ctx = (params: Record<string, string | string[]>): any => ({ params
 export async function json<T = any>(res: Response) {
   return (await res.json()) as T
 }
+
+/** Creates a real session row and sets the (mocked) cookie, like a login would */
+export async function signInAs(userId: string) {
+  const { createSession } = await import("@/server/auth/sessions")
+  await createSession(userId, "vitest")
+}

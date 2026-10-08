@@ -13,7 +13,7 @@ import { LivePreview } from "./LivePreview"
 import { MediaSection } from "./MediaSection"
 import { PublishOptions } from "./PublishOptions"
 import type { ContentFormValues } from "./schema"
-import { useContentForm } from "./use-content-form"
+import { notifyPublishBlocked, useContentForm } from "./use-content-form"
 import { VerifyToPublishModal } from "./VerifyToPublishModal"
 
 const SUBMIT_LABEL: Record<EContentStatus, string> = {
@@ -36,6 +36,8 @@ export function ContentForm({ defaults, existing }: ContentFormProps) {
     : existing && status === existing.status
       ? "Save changes"
       : SUBMIT_LABEL[status]
+
+  const onLocked = () => (vm.lockReason === "permission" ? notifyPublishBlocked() : vm.setVerifyPrompt(true))
 
   const submitButton = (className?: string) => (
     <Button
@@ -69,7 +71,8 @@ export function ContentForm({ defaults, existing }: ContentFormProps) {
               onScheduledForChange={(v) => form.setValue("scheduledFor", v, { shouldDirty: true, shouldValidate: true })}
               scheduleError={form.formState.errors.scheduledFor?.message}
               canPublish={vm.canPublish}
-              onLockedSelect={() => vm.setVerifyPrompt(true)}
+              lockReason={vm.lockReason}
+              onLockedSelect={onLocked}
             />
           </SectionCard>
         </div>
@@ -84,12 +87,15 @@ export function ContentForm({ defaults, existing }: ContentFormProps) {
             onScheduledForChange={(v) => form.setValue("scheduledFor", v, { shouldDirty: true, shouldValidate: true })}
             scheduleError={form.formState.errors.scheduledFor?.message}
             canPublish={vm.canPublish}
-            onLockedSelect={() => vm.setVerifyPrompt(true)}
+            lockReason={vm.lockReason}
+            onLockedSelect={onLocked}
           />
-          {!vm.canPublish && (
+          {vm.lockReason && (
             <p className="flex items-start gap-2 rounded-lg bg-warning-surface p-2.5 text-xs leading-relaxed text-text-secondary">
               <HugeiconsIcon icon={SquareLock02Icon} size={14} className="mt-0.5 shrink-0 text-warning" />
-              Publishing unlocks after identity verification. You can save drafts any time.
+              {vm.lockReason === "permission"
+                ? "Your role can save drafts but not publish. An admin can publish it for you."
+                : "Publishing unlocks after identity verification. You can save drafts any time."}
             </p>
           )}
           {submitButton("w-full")}

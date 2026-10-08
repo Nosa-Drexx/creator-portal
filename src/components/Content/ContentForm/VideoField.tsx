@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { CloudUploadIcon, Delete02Icon, Image02Icon, RefreshIcon, Video01Icon } from "@hugeicons/core-free-icons"
@@ -13,7 +13,7 @@ import { useObjectUrl } from "@/hooks/use-object-url"
 import { useSignedUrl } from "@/hooks/use-signed-url"
 import { formatBytes, formatDuration } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { captureVideoFrame, readVideoDuration } from "@/lib/video"
+import { captureCurrentFrame, captureVideoFrame, readVideoDuration } from "@/lib/video"
 
 interface VideoFieldProps {
   value: string | null
@@ -31,6 +31,7 @@ export function VideoField({ value, fileName, onChange, onUploadingChange, onUse
   const [file, setFile] = useState<File | null>(null)
   const [duration, setDuration] = useState<number | null>(null)
   const [capturing, setCapturing] = useState(false)
+  const playerRef = useRef<HTMLVideoElement>(null)
   const localUrl = useObjectUrl(file)
   const { signedUrl } = useSignedUrl(file ? null : value)
   const playable = localUrl ?? signedUrl
@@ -70,7 +71,9 @@ export function VideoField({ value, fileName, onChange, onUploadingChange, onUse
   const useFrame = async () => {
     if (!playable) return
     setCapturing(true)
-    const frame = await captureVideoFrame(playable)
+    const player = playerRef.current
+    // Prefer the exact frame on screen; fall back to the same timestamp on a hidden copy
+    const frame = (player && (await captureCurrentFrame(player))) ?? (await captureVideoFrame(playable, player?.currentTime ?? 1))
     setCapturing(false)
     if (frame) onUseFrame(frame)
   }
@@ -104,7 +107,14 @@ export function VideoField({ value, fileName, onChange, onUploadingChange, onUse
         ) : (
           <div className="flex flex-col gap-3 p-3">
             {playable && upload.status !== "error" ? (
-              <video src={playable} controls playsInline preload="metadata" className="aspect-video w-full rounded-lg bg-black" />
+              <video
+                ref={playerRef}
+                src={playable}
+                controls
+                playsInline
+                preload="auto"
+                className="aspect-video w-full rounded-lg bg-black"
+              />
             ) : (
               <div className="grid aspect-video w-full place-items-center rounded-lg bg-muted text-text-tertiary">
                 <HugeiconsIcon icon={Video01Icon} size={28} />
@@ -123,7 +133,7 @@ export function VideoField({ value, fileName, onChange, onUploadingChange, onUse
                   {playable && (
                     <Button type="button" size="xs" variant="outline" onClick={useFrame} isLoading={capturing}>
                       <HugeiconsIcon icon={Image02Icon} size={13} />
-                      Use frame as thumbnail
+                      Use this frame as thumbnail
                     </Button>
                   )}
                   <Button type="button" size="xs" variant="outline" onClick={open}>

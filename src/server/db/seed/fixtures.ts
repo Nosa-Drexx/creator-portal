@@ -8,10 +8,13 @@ export interface ContentFixture {
   status: ContentStatus
   /** Days ago (published) or days ahead (scheduled) */
   dayOffset: number
+  /** Kept for realism in fixtures; seeded rows use the bundled clip's real length */
   durationSeconds: number
   /** Relative popularity, drives views and purchases */
   weight: number
 }
+
+export { DEMO_PASSWORD } from "@/constants/demo"
 
 export const DEMO_USER = {
   id: "usr_demo_amara",
@@ -24,6 +27,13 @@ export const OTHER_USER = {
   name: "Theo Marsh",
   email: "theo@creatorhub.dev",
 }
+
+/** Members of Amara Studio, one per built-in role, so reviewers can see permissions in action */
+export const TEAM_USERS = [
+  { id: "usr_demo_jordan", name: "Jordan Blake", email: "jordan@creatorhub.dev", role: "admin" },
+  { id: "usr_demo_priya", name: "Priya Shah", email: "priya@creatorhub.dev", role: "editor" },
+  { id: "usr_demo_sam", name: "Sam Okafor", email: "sam@creatorhub.dev", role: "analyst" },
+] as const
 
 export const WORKSPACES = {
   studio: {
@@ -61,6 +71,18 @@ export const STUDIO_CONTENT: ContentFixture[] = [
   { title: "Behind the Shot: Iceland Black Sand Beach", description: "A short breakdown of a single image, from planning to the final print.", priceCents: 499, thumb: 9, status: "published", dayOffset: 12, durationSeconds: 540, weight: 2 },
   { title: "Night Sky & Milky Way Planning", description: "Moon phases, light pollution maps and the settings I use for sharp stars.", priceCents: 2900, thumb: 10, status: "scheduled", dayOffset: 5, durationSeconds: 3120, weight: 0 },
   { title: "Printing Your Work: Paper, Profiles and Pricing", description: "Turn your best images into prints people want to buy.", priceCents: 1900, thumb: 11, status: "scheduled", dayOffset: 14, durationSeconds: 2460, weight: 0 },
+  { title: "Reading Light: A Beginner's Guide", description: "Hard light, soft light and how to see the difference before you press the shutter.", priceCents: 0, thumb: 15, status: "published", dayOffset: 330, durationSeconds: 1440, weight: 3 },
+  { title: "Street Photography Without Fear", description: "Practical ways to photograph strangers respectfully and confidently.", priceCents: 1900, thumb: 16, status: "published", dayOffset: 300, durationSeconds: 2580, weight: 3 },
+  { title: "Black & White Conversions That Pop", description: "Channel mixing, local contrast and toning for monochrome images.", priceCents: 1400, thumb: 17, status: "published", dayOffset: 270, durationSeconds: 1980, weight: 2 },
+  { title: "Planning a Photo Trip on a Budget", description: "Scouting, timing and keeping costs down without missing the shot.", priceCents: 900, thumb: 18, status: "published", dayOffset: 230, durationSeconds: 1620, weight: 2 },
+  { title: "Wildlife Lenses Explained", description: "Focal lengths, apertures and teleconverters for wildlife shooters.", priceCents: 2400, thumb: 2, status: "published", dayOffset: 190, durationSeconds: 2340, weight: 2 },
+  { title: "Phone vs Camera: A Real-World Test", description: "A week shooting the same scenes on both, with honest results.", priceCents: 499, thumb: 4, status: "published", dayOffset: 140, durationSeconds: 1080, weight: 4 },
+  { title: "Editing Workflow Speedrun", description: "Import to export in under ten minutes, without cutting corners.", priceCents: 1200, thumb: 6, status: "published", dayOffset: 95, durationSeconds: 900, weight: 3 },
+  { title: "Shooting Snow Without Grey Skies", description: "Exposure compensation, white balance and protecting your gear in the cold.", priceCents: 1500, thumb: 3, status: "published", dayOffset: 55, durationSeconds: 1560, weight: 2 },
+  { title: "Sunrise Hikes: Kit and Safety", description: "What to carry for pre-dawn hikes and how to stay safe in the dark.", priceCents: 999, thumb: 5, status: "published", dayOffset: 25, durationSeconds: 1320, weight: 2 },
+  { title: "Monthly Q&A: October", description: "Answers to the most-asked questions from the community this month.", priceCents: 0, thumb: 8, status: "scheduled", dayOffset: 21, durationSeconds: 3000, weight: 0 },
+  { title: "Behind the Shot: Lofoten Fishing Village", description: "", priceCents: 499, thumb: 10, status: "draft", dayOffset: 0, durationSeconds: 600, weight: 0 },
+  { title: "Lens Filters: What's Actually Worth Buying", description: "Polarisers, NDs and graduated filters, tested side by side.", priceCents: 1900, thumb: 12, status: "draft", dayOffset: 0, durationSeconds: 1800, weight: 0 },
   { title: "Gear I Actually Use in 2026", description: "An honest walkthrough of the kit in my bag, and what I would skip.", priceCents: 0, thumb: 12, status: "draft", dayOffset: 0, durationSeconds: 960, weight: 0 },
   { title: "Long Exposure Seascapes (Rough Cut)", description: "", priceCents: 1400, thumb: 13, status: "draft", dayOffset: 0, durationSeconds: 1800, weight: 0 },
   { title: "Portfolio Review Livestream Replay", description: "Reviewing viewer submissions live, with practical feedback on each one.", priceCents: 999, thumb: 14, status: "draft", dayOffset: 0, durationSeconds: 4200, weight: 0 },

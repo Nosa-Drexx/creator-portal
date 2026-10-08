@@ -18,3 +18,8 @@ vi.mock("next/headers", () => ({
     delete: (name: string) => cookieJar.delete(name),
   }),
 }))
+
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
+  connection: async () => {},
+}))

@@ -14,6 +14,9 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { SearchInput } from "@/components/shared/SearchInput"
 import { SegmentedControl } from "@/components/shared/SegmentedControl"
 import { routes } from "@/constants/routes"
+import { CanCreate } from "@/components/shared/Permissions"
+import { EAction, EModule } from "@/constants/permissions"
+import { usePermissions } from "@/hooks/use-permissions"
 import { EContentStatus } from "@/enums/content"
 import { useContentList } from "@/hooks/queries/use-content"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -22,7 +25,8 @@ import type { Content } from "@/types/content"
 import { buildContentColumns } from "./content-columns"
 import { ContentMobileList } from "./ContentMobileList"
 import { DeleteContentModal } from "./DeleteContentModal"
-import { useContentFilters, type ContentSortKey } from "./use-content-filters"
+import { CONTENT_PAGE_SIZE, useContentFilters, type ContentSortKey } from "./use-content-filters"
+import { CustomPagination } from "@/components/shared/CustomPagination"
 
 const MOBILE_SORTS: { value: ContentSortKey; label: string }[] = [
   { value: "updated", label: "Recently edited" },
@@ -36,9 +40,16 @@ export function ContentListPage() {
   const router = useRouter()
   const isMobile = useIsMobile()
   const { data, isPending, error, refetch, isRefetching } = useContentList()
-  const { filters, setFilters, visible, counts, sort, hasActiveFilters, clear } = useContentFilters(data)
+  const { filters, setFilters, visible, pageItems, page, totalPages, setPage, counts, sort, hasActiveFilters, clear } =
+    useContentFilters(data)
+
+  const changePage = (next: number) => {
+    setPage(next)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
   const [toDelete, setToDelete] = useState<Content | null>(null)
-  const columns = buildContentColumns(setToDelete)
+  const { can } = usePermissions()
+  const columns = buildContentColumns(setToDelete, can(EAction.View, EModule.Analytics))
 
   const statusOptions = [
     { value: "all", label: "All", count: counts.all },
@@ -53,12 +64,14 @@ export function ContentListPage() {
         title="Content"
         description="Manage, publish and track every video in this workspace."
         actions={
-          <Button asChild variant="brand" className="max-md:hidden">
-            <Link href={routes.newContent(slug)}>
-              <HugeiconsIcon icon={Add01Icon} size={16} />
-              Upload video
-            </Link>
-          </Button>
+          <CanCreate module={EModule.Content}>
+            <Button asChild variant="brand" className="max-md:hidden">
+              <Link href={routes.newContent(slug)}>
+                <HugeiconsIcon icon={Add01Icon} size={16} />
+                Upload video
+              </Link>
+            </Button>
+          </CanCreate>
         }
       />
 
@@ -109,22 +122,35 @@ export function ContentListPage() {
               title="Upload your first video"
               description="Add a title, price and your video file. You can publish now, schedule it, or keep it as a draft."
               action={
-                <Button asChild variant="brand">
-                  <Link href={routes.newContent(slug)}>Upload video</Link>
-                </Button>
+                <CanCreate module={EModule.Content}>
+                  <Button asChild variant="brand">
+                    <Link href={routes.newContent(slug)}>Upload video</Link>
+                  </Button>
+                </CanCreate>
               }
             />
           )
         ) : isMobile ? (
-          <ContentMobileList items={visible} onDelete={setToDelete} />
+          <ContentMobileList items={pageItems} onDelete={setToDelete} />
         ) : (
           <DataTable
             columns={columns}
-            data={visible}
+            data={pageItems}
             getRowId={(row) => row.id}
             sort={sort}
             onSortChange={(next) => setFilters({ sort: next.key as ContentSortKey, order: next.direction })}
             onRowClick={(row) => router.push(routes.contentDetail(slug, row.id))}
+          />
+        )}
+
+        {visible.length > 0 && (
+          <CustomPagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={visible.length}
+            pageSize={CONTENT_PAGE_SIZE}
+            onPageChange={changePage}
+            className="border-t border-stroke px-4 py-3 sm:px-5"
           />
         )}
       </section>

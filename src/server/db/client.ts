@@ -9,7 +9,7 @@ import * as schema from "./schema"
 
 export type Database = LibSQLDatabase<typeof schema>
 
-const globalForDb = globalThis as unknown as { libsql?: Client; db?: Database }
+const globalForDb = globalThis as unknown as { libsql?: Client }
 
 function createLibsqlClient() {
   const url = env.DATABASE_URL
@@ -19,11 +19,8 @@ function createLibsqlClient() {
   return createClient({ url, authToken: env.DATABASE_AUTH_TOKEN })
 }
 
-// Reuse one connection across hot reloads in dev
+// Reuse one connection across hot reloads, but rebuild the Drizzle wrapper so schema edits apply
 export const libsql = globalForDb.libsql ?? createLibsqlClient()
-export const db: Database = globalForDb.db ?? drizzle(libsql, { schema })
+export const db: Database = drizzle(libsql, { schema })
 
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.libsql = libsql
-  globalForDb.db = db
-}
+if (process.env.NODE_ENV !== "production") globalForDb.libsql = libsql

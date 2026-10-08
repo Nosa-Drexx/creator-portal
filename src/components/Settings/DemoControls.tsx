@@ -15,6 +15,8 @@ import { useResetDemo, useSetDemoFault, useSetDemoVerification } from "@/hooks/m
 import { useDemoState } from "@/hooks/queries/use-demo-state"
 import { useWorkspace } from "@/hooks/queries/use-workspace"
 import { SettingRow } from "./SettingRow"
+import { CanManage } from "@/components/shared/Permissions"
+import { EModule } from "@/constants/permissions"
 
 const VERIFICATION_OPTIONS = [
   { value: EVerificationStatus.Unverified, label: "Unverified" },
@@ -51,6 +53,7 @@ export function DemoControls() {
       description="Jump between demo states without editing the database. These wouldn't exist in production."
       bodyClassName="divide-y divide-stroke p-4 sm:p-5"
     >
+      <CanManage module={EModule.Verification}>
       <SettingRow
         title="Verification state"
         description={`Switch ${workspace.name} between states to see how publishing is gated. "In review" auto-approves after ~20 seconds.`}
@@ -63,6 +66,7 @@ export function DemoControls() {
           options={VERIFICATION_OPTIONS}
         />
       </SettingRow>
+      </CanManage>
       <SettingRow
         title="API behaviour"
         description="Slow adds ~2s to every request to show loading states. Failing returns 503s to show error states and retries."
@@ -88,7 +92,7 @@ export function DemoControls() {
       </SettingRow>
       <SettingRow
         title="Reset demo data"
-        description="Restores the seeded workspaces, 18 videos and 1,292 purchases. Uploaded files are cleared."
+        description="Restores the seeded workspaces, 30 videos and 1,831 purchases. Uploaded files are cleared."
       >
         <Button variant="outline" size="sm" onClick={() => setConfirmReset(true)}>
           <HugeiconsIcon icon={RefreshIcon} size={14} />

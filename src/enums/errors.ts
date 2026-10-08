@@ -7,6 +7,7 @@ export enum EErrorCode {
   Conflict = "CONFLICT",
   VerificationRequired = "VERIFICATION_REQUIRED",
   PayloadTooLarge = "PAYLOAD_TOO_LARGE",
+  RateLimited = "RATE_LIMITED",
   Internal = "INTERNAL",
   SimulatedFailure = "SIMULATED_FAILURE",
 }

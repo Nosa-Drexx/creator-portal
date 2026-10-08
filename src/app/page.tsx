@@ -1,7 +1,10 @@
-import { redirect } from "next/navigation"
-import { DEFAULT_WORKSPACE_SLUG } from "@/constants/demo"
-import { routes } from "@/constants/routes"
+import { ClientBoundary } from "@/components/shared/ClientBoundary"
+import { HomeRedirect } from "@/components/Workspace/HomeRedirect"
 
 export default function Home() {
-  redirect(routes.overview(DEFAULT_WORKSPACE_SLUG))
+  return (
+    <ClientBoundary fallback={null}>
+      <HomeRedirect />
+    </ClientBoundary>
+  )
 }

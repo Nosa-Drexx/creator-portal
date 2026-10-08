@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { parseAsString, parseAsStringEnum, useQueryStates } from "nuqs"
+import { parseAsInteger, parseAsString, parseAsStringEnum, useQueryStates } from "nuqs"
 import type { DataTableSort } from "@/components/shared/DataTable"
 import { EContentStatus } from "@/enums/content"
 import type { Content } from "@/types/content"
@@ -13,19 +13,26 @@ const parsers = {
   status: parseAsStringEnum(Object.values(EContentStatus)),
   sort: parseAsStringEnum<ContentSortKey>(["updated", "revenue", "views", "purchases", "price"]).withDefault("updated"),
   order: parseAsStringEnum(["asc", "desc"] as const).withDefault("desc"),
+  page: parseAsInteger.withDefault(1),
 }
+
+export const CONTENT_PAGE_SIZE = 10
 
 const SORTERS: Record<ContentSortKey, (c: Content) => number> = {
   updated: (c) => new Date(c.updatedAt).getTime(),
-  revenue: (c) => c.revenueCents,
-  views: (c) => c.views,
-  purchases: (c) => c.purchases,
+  revenue: (c) => c.revenueCents ?? 0,
+  views: (c) => c.views ?? 0,
+  purchases: (c) => c.purchases ?? 0,
   price: (c) => c.priceCents,
 }
 
 /** The catalogue is small per creator, so filtering and sorting run client-side for instant feedback */
 export function useContentFilters(items: Content[] | undefined) {
-  const [filters, setFilters] = useQueryStates(parsers, { history: "replace", scroll: false })
+  const [filters, setQuery] = useQueryStates(parsers, { history: "replace", scroll: false })
+
+  // Any filter or sort change starts again from page 1
+  const setFilters = (next: Omit<Parameters<typeof setQuery>[0], "page">) => setQuery({ ...next, page: null })
+  const setPage = (page: number) => setQuery({ page })
 
   const counts = useMemo(() => {
     const all = items ?? []
@@ -47,12 +54,19 @@ export function useContentFilters(items: Content[] | undefined) {
       .sort((a, b) => (pick(a) - pick(b)) * dir)
   }, [items, filters])
 
+  const totalPages = Math.max(1, Math.ceil(visible.length / CONTENT_PAGE_SIZE))
+  const page = Math.min(filters.page, totalPages)
+  const pageItems = visible.slice((page - 1) * CONTENT_PAGE_SIZE, page * CONTENT_PAGE_SIZE)
   const sort: DataTableSort = { key: filters.sort, direction: filters.order }
 
   return {
     filters,
     setFilters,
     visible,
+    pageItems,
+    page,
+    totalPages,
+    setPage,
     counts,
     sort,
     hasActiveFilters: !!filters.q || !!filters.status,

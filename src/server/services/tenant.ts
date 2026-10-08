@@ -2,19 +2,20 @@ import "server-only"
 
 import { and, eq } from "drizzle-orm"
 import { EVerificationStatus } from "@/enums/verification"
-import { EWorkspaceRole } from "@/enums/workspace"
 import { db } from "@/server/db/client"
-import { memberships, workspaces, type UserRow, type WorkspaceRow } from "@/server/db/schema"
+import { memberships, roles, workspaces, type RoleRow, type UserRow, type WorkspaceRow } from "@/server/db/schema"
 import { Errors } from "@/server/lib/errors"
 import { requireUser } from "@/server/lib/session"
 import type { Workspace } from "@/types/workspace"
+import { hasPermission } from "./permissions"
 import { canPublish } from "./publishing"
 import { getVerification } from "./verification"
 
 export interface TenantContext {
   user: UserRow
   workspace: WorkspaceRow
-  role: EWorkspaceRole
+  role: RoleRow
+  permissions: string[]
   verificationStatus: EVerificationStatus
 }
 
@@ -25,12 +26,10 @@ export interface TenantContext {
 export async function requireTenant(slug: string): Promise<TenantContext> {
   const user = await requireUser()
   const [match] = await db
-    .select({ workspace: workspaces, role: memberships.role })
+    .select({ workspace: workspaces, role: roles })
     .from(workspaces)
-    .innerJoin(
-      memberships,
-      and(eq(memberships.workspaceId, workspaces.id), eq(memberships.userId, user.id)),
-    )
+    .innerJoin(memberships, and(eq(memberships.workspaceId, workspaces.id), eq(memberships.userId, user.id)))
+    .innerJoin(roles, eq(roles.id, memberships.roleId))
     .where(eq(workspaces.slug, slug))
     .limit(1)
 
@@ -40,19 +39,14 @@ export async function requireTenant(slug: string): Promise<TenantContext> {
   return {
     user,
     workspace: match.workspace,
-    role: match.role as EWorkspaceRole,
+    role: match.role,
+    permissions: match.role.permissions,
     verificationStatus: verification.status as EVerificationStatus,
   }
 }
 
-export function requireOwner(ctx: TenantContext) {
-  if (ctx.role !== EWorkspaceRole.Owner) {
-    throw Errors.forbidden("Only workspace owners can do that")
-  }
-}
-
 export function toWorkspaceDto(ctx: Omit<TenantContext, "user">): Workspace {
-  const { workspace } = ctx
+  const { workspace, role } = ctx
   return {
     id: workspace.id,
     slug: workspace.slug,
@@ -60,26 +54,29 @@ export function toWorkspaceDto(ctx: Omit<TenantContext, "user">): Workspace {
     handle: workspace.handle,
     accentColor: workspace.accentColor,
     avatarUrl: workspace.avatarUrl,
-    role: ctx.role,
+    role: { id: role.id, name: role.name, systemKey: role.systemKey },
+    permissions: ctx.permissions,
     verificationStatus: ctx.verificationStatus,
-    canPublish: canPublish(ctx.verificationStatus),
+    canPublish: canPublish(ctx.verificationStatus) && hasPermission(ctx.permissions, "publish:content"),
   }
 }
 
 export async function listUserWorkspaces(user: UserRow): Promise<Workspace[]> {
   const rows = await db
-    .select({ workspace: workspaces, role: memberships.role })
+    .select({ workspace: workspaces, role: roles })
     .from(memberships)
     .innerJoin(workspaces, eq(workspaces.id, memberships.workspaceId))
+    .innerJoin(roles, eq(roles.id, memberships.roleId))
     .where(eq(memberships.userId, user.id))
-    .orderBy(workspaces.createdAt)
+    .orderBy(memberships.createdAt)
 
   return Promise.all(
     rows.map(async ({ workspace, role }) => {
       const verification = await getVerification(workspace.id)
       return toWorkspaceDto({
         workspace,
-        role: role as EWorkspaceRole,
+        role,
+        permissions: role.permissions,
         verificationStatus: verification.status as EVerificationStatus,
       })
     }),

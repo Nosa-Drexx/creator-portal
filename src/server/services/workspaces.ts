@@ -3,12 +3,13 @@ import "server-only"
 import { count, eq, like } from "drizzle-orm"
 import { MAX_WORKSPACES_PER_USER, slugify } from "@/constants/workspace"
 import { EVerificationStatus } from "@/enums/verification"
-import { EWorkspaceRole } from "@/enums/workspace"
+import { ESystemRole } from "@/constants/permissions"
 import { db } from "@/server/db/client"
-import { memberships, verifications, workspaces, type UserRow } from "@/server/db/schema"
+import { memberships, roles, verifications, workspaces, type UserRow } from "@/server/db/schema"
 import { Errors } from "@/server/lib/errors"
 import { newId } from "@/server/lib/ids"
 import type { Workspace } from "@/types/workspace"
+import { createSystemRoles } from "./system-roles"
 import { toWorkspaceDto } from "./tenant"
 
 interface CreateWorkspacePayload {
@@ -40,20 +41,27 @@ export async function createWorkspace(user: UserRow, payload: CreateWorkspacePay
   const slug = await uniqueSlug(payload.name)
   const workspaceId = newId("ws")
 
-  // One transaction: a workspace never exists without its owner or verification record
-  const workspace = await db.transaction(async (tx) => {
+  // One transaction: a workspace never exists without its roles, owner or verification record
+  const { workspace, ownerRole } = await db.transaction(async (tx) => {
     const [row] = await tx
       .insert(workspaces)
       .values({ id: workspaceId, slug, name: payload.name, handle: payload.handle, accentColor: payload.accentColor })
       .returning()
+    const roleIds = await createSystemRoles(tx, workspaceId)
     await tx
       .insert(memberships)
-      .values({ id: newId("mem"), workspaceId, userId: user.id, role: EWorkspaceRole.Owner })
+      .values({ id: newId("mem"), workspaceId, userId: user.id, roleId: roleIds[ESystemRole.Owner] })
     await tx
       .insert(verifications)
       .values({ id: newId("ver"), workspaceId, status: EVerificationStatus.Unverified })
-    return row
+    const [owner] = await tx.select().from(roles).where(eq(roles.id, roleIds[ESystemRole.Owner]))
+    return { workspace: row, ownerRole: owner }
   })
 
-  return toWorkspaceDto({ workspace, role: EWorkspaceRole.Owner, verificationStatus: EVerificationStatus.Unverified })
+  return toWorkspaceDto({
+    workspace,
+    role: ownerRole,
+    permissions: ownerRole.permissions,
+    verificationStatus: EVerificationStatus.Unverified,
+  })
 }

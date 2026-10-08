@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto"
 import path from "node:path"
 import { and, eq } from "drizzle-orm"
 import { UPLOAD_RULES, validateUploadFile } from "@/constants/uploads"
-import type { EUploadKind } from "@/enums/uploads"
+import { EUploadKind } from "@/enums/uploads"
 import { db } from "@/server/db/client"
 import { uploads } from "@/server/db/schema"
 import { Errors } from "@/server/lib/errors"
@@ -12,13 +12,25 @@ import { newId } from "@/server/lib/ids"
 import { writeObject } from "@/server/storage/local"
 import { signUrl } from "@/server/storage/signing"
 import type { UploadIntent, UploadIntentPayload } from "@/types/uploads"
+import type { Permission } from "@/constants/permissions"
+import { assertPermission, hasPermission } from "./permissions"
 import type { TenantContext } from "./tenant"
 
 const UPLOAD_URL_TTL = 15 * 60
 const MEDIA_URL_TTL = 10 * 60
 
+const UPLOAD_PERMISSIONS: Record<EUploadKind, Permission[]> = {
+  // Editors replacing media on an existing video need uploads too
+  [EUploadKind.Thumbnail]: ["create:content", "edit:content"],
+  [EUploadKind.Video]: ["create:content", "edit:content"],
+  [EUploadKind.Document]: ["manage:verification"],
+  [EUploadKind.Selfie]: ["manage:verification"],
+}
+
 /** Step 1: validate the file and hand back a short-lived signed PUT URL */
 export async function createUploadIntent(ctx: TenantContext, payload: UploadIntentPayload): Promise<UploadIntent> {
+  const allowed = UPLOAD_PERMISSIONS[payload.kind]
+  if (!allowed.some((code) => hasPermission(ctx.permissions, code))) assertPermission(ctx, allowed[0])
   const error = validateUploadFile(payload.kind, { type: payload.contentType, size: payload.sizeBytes })
   if (error) throw Errors.badRequest(error)
 

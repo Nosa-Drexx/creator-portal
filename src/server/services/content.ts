@@ -3,14 +3,14 @@ import "server-only"
 import { and, desc, eq, inArray, isNull, like, lte, sql } from "drizzle-orm"
 import { EContentStatus } from "@/enums/content"
 import { EPurchaseStatus } from "@/enums/purchases"
-import { EWorkspaceRole } from "@/enums/workspace"
 import { db } from "@/server/db/client"
 import { content, purchases, uploads, type ContentRow } from "@/server/db/schema"
 import { Errors } from "@/server/lib/errors"
 import { newId } from "@/server/lib/ids"
 import type { ContentPayloadInput } from "@/lib/validation/content"
 import type { Content, ContentListParams } from "@/types/content"
-import { assertCanSetStatus, canPublish } from "./publishing"
+import { assertPermission, hasPermission } from "./permissions"
+import { assertCanSetStatus, canPublish, requiresVerification } from "./publishing"
 import type { TenantContext } from "./tenant"
 
 const stats = db
@@ -32,9 +32,10 @@ function toDto(row: ContentRow, purchaseCount = 0, revenueCents = 0): Content {
     priceCents: row.priceCents,
     thumbnailKey: row.thumbnailKey,
     videoKey: row.videoKey,
-    videoFileName: row.videoFileName,
-    videoSizeBytes: row.videoSizeBytes,
-    durationSeconds: row.durationSeconds,
+    // Video metadata only exists alongside a video file
+    videoFileName: row.videoKey ? row.videoFileName : null,
+    videoSizeBytes: row.videoKey ? row.videoSizeBytes : null,
+    durationSeconds: row.videoKey ? row.durationSeconds : null,
     status: row.status as EContentStatus,
     scheduledFor: row.scheduledFor?.toISOString() ?? null,
     publishedAt: row.publishedAt?.toISOString() ?? null,
@@ -62,7 +63,14 @@ async function promoteDueScheduled(ctx: TenantContext) {
     )
 }
 
+/** Sales and performance data stay server-side for roles without analytics access */
+function withMetricsFor(ctx: TenantContext, item: Content): Content {
+  if (hasPermission(ctx.permissions, "view:analytics")) return item
+  return { ...item, views: null, purchases: null, revenueCents: null }
+}
+
 export async function listContent(ctx: TenantContext, params: ContentListParams) {
+  assertPermission(ctx, "view:content")
   await promoteDueScheduled(ctx)
   const rows = await db
     .select({ row: content, purchases: stats.purchases, revenueCents: stats.revenueCents })
@@ -78,7 +86,7 @@ export async function listContent(ctx: TenantContext, params: ContentListParams)
     )
     .orderBy(desc(content.updatedAt))
 
-  return rows.map((r) => toDto(r.row, r.purchases ?? 0, r.revenueCents ?? 0))
+  return rows.map((r) => withMetricsFor(ctx, toDto(r.row, r.purchases ?? 0, r.revenueCents ?? 0)))
 }
 
 async function findOwned(ctx: TenantContext, id: string) {
@@ -93,9 +101,10 @@ async function findOwned(ctx: TenantContext, id: string) {
 }
 
 export async function getContent(ctx: TenantContext, id: string) {
+  assertPermission(ctx, "view:content")
   await promoteDueScheduled(ctx)
   const match = await findOwned(ctx, id)
-  return toDto(match.row, match.purchases ?? 0, match.revenueCents ?? 0)
+  return withMetricsFor(ctx, toDto(match.row, match.purchases ?? 0, match.revenueCents ?? 0))
 }
 
 /** Media keys must be completed uploads owned by this workspace (seed assets are public paths) */
@@ -126,8 +135,18 @@ function statusFields(payload: ContentPayloadInput, existing?: ContentRow) {
   }
 }
 
+/** Role first (can this person publish?), then the workspace-level verification rule */
+function assertStatusChange(ctx: TenantContext, from: EContentStatus | null, to: EContentStatus) {
+  const touchesPublic = requiresVerification(to) || (from !== null && requiresVerification(from))
+  if (from !== to && touchesPublic) {
+    assertPermission(ctx, "publish:content", "Your role can't publish or unpublish videos. Save it as a draft for an admin to publish.")
+  }
+  if (from !== to) assertCanSetStatus(ctx.verificationStatus, to)
+}
+
 export async function createContent(ctx: TenantContext, payload: ContentPayloadInput) {
-  assertCanSetStatus(ctx.verificationStatus, payload.status)
+  assertPermission(ctx, "create:content")
+  assertStatusChange(ctx, null, payload.status)
   await assertMediaOwned(ctx, [payload.thumbnailKey, payload.videoKey])
 
   const [row] = await db
@@ -145,12 +164,13 @@ export async function createContent(ctx: TenantContext, payload: ContentPayloadI
       ...statusFields(payload),
     })
     .returning()
-  return toDto(row)
+  return withMetricsFor(ctx, toDto(row))
 }
 
 export async function updateContent(ctx: TenantContext, id: string, payload: ContentPayloadInput) {
+  assertPermission(ctx, "edit:content")
   const { row: existing } = await findOwned(ctx, id)
-  if (payload.status !== existing.status) assertCanSetStatus(ctx.verificationStatus, payload.status)
+  assertStatusChange(ctx, existing.status as EContentStatus, payload.status)
   await assertMediaOwned(ctx, [payload.thumbnailKey, payload.videoKey], [existing.thumbnailKey, existing.videoKey])
 
   const videoChanged = payload.videoKey !== existing.videoKey
@@ -173,9 +193,7 @@ export async function updateContent(ctx: TenantContext, id: string, payload: Con
 }
 
 export async function deleteContent(ctx: TenantContext, id: string) {
-  const { row } = await findOwned(ctx, id)
-  if (ctx.role !== EWorkspaceRole.Owner && row.status !== EContentStatus.Draft) {
-    throw Errors.forbidden("Editors can only delete drafts. Ask the workspace owner to remove published content.")
-  }
+  assertPermission(ctx, "delete:content")
+  await findOwned(ctx, id)
   await db.update(content).set({ deletedAt: new Date(), updatedAt: new Date() }).where(eq(content.id, id))
 }

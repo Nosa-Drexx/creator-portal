@@ -21,7 +21,7 @@ Three improvements I'd make if I owned CreatorHub's creator experience. The firs
 - Tenant in the URL (`/w/:workspace/...`).
 - Server-side membership checks on every route.
 - Workspace-scoped storage keys and signed media URLs.
-- Owner and editor roles: editors can only delete drafts, and only owners can submit verification.
+- Role-based access control: built-in Owner, Admin, Editor and Analyst roles plus custom roles from a permission matrix. The single owner is protected: their role can't be changed, they can't be removed, and Owner can't be granted to anyone else. Members are invited with email-bound links. Every endpoint is enforced server-side, and the UI is guarded by permission.
 - Verification per workspace, since it represents the payout entity.
 - A workspace switcher that keeps you on the same section.
 - Creating a new workspace (name, handle, accent colour).
@@ -29,7 +29,8 @@ Three improvements I'd make if I owned CreatorHub's creator experience. The firs
 - Tests for isolation.
 
 **Next steps:**
-- Invitations and member management.
+- Emailing invitations (they're in-app and link-based today).
+- A deliberate "transfer ownership" flow, with confirmation and re-authentication, since ownership is otherwise fixed.
 - Per-role permissions on payouts.
 - An option to reuse a verified identity across workspaces owned by the same person.
 - Subdomains (`studio.<your-domain>`) in production.
@@ -63,3 +64,10 @@ Three improvements I'd make if I owned CreatorHub's creator experience. The firs
 - **Buyers** get a fairer purchase decision, which also means fewer refunds.
 
 **Why medium priority.** Previews need the processing pipeline to output a separate clip rendition, and price guidance needs enough data per workspace to be honest. It should follow the upload work in #2.
+
+---
+
+## Also added: brand identity and SEO
+
+An app icon and favicon set, a web app manifest, a 1200×630 Open Graph banner optimised for every major social platform, and complete site metadata (Open Graph, Twitter cards, robots and sitemap, with private pages set to `noindex`). Shared links now look professional, and the public pages can be found by search engines.
+

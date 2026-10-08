@@ -1,10 +1,19 @@
 import type { Database } from "../client"
 import * as schema from "../schema"
+import { createHash, randomBytes } from "node:crypto"
+import { statSync } from "node:fs"
+import path from "node:path"
+import { ESystemRole } from "@/constants/permissions"
+import { hashPassword } from "@/server/auth/password"
+import { encrypt } from "@/server/lib/crypto"
+import { createSystemRoles } from "@/server/services/system-roles"
 import {
+  DEMO_PASSWORD,
   DEMO_USER,
   FOREIGN_CONTENT,
   OTHER_USER,
   STUDIO_CONTENT,
+  TEAM_USERS,
   TRAVEL_CONTENT,
   WORKSPACES,
   type ContentFixture,
@@ -24,6 +33,16 @@ async function insertChunked<T extends Record<string, unknown>>(
 }
 
 const SAMPLE_VIDEO = "/seed/videos/sample-reel.mp4"
+// Seeded videos all play this clip, so they report its real length and size
+const SAMPLE_DURATION_SECONDS = 8
+
+function sampleVideoBytes() {
+  try {
+    return statSync(path.join(process.cwd(), "public", SAMPLE_VIDEO)).size
+  } catch {
+    return null
+  }
+}
 
 function atNineAm(date: Date) {
   date.setHours(9, 0, 0, 0)
@@ -45,9 +64,11 @@ async function seedWorkspaceContent(
   const rand = createRandom(seed)
   const purchases = generatePurchases(items, now, rand)
   const ids = items.map((_, i) => `cnt_${prefix}_${String(i + 1).padStart(2, "0")}`)
+  const sampleBytes = sampleVideoBytes()
 
   const contentRows = items.map((item, i) => {
     const bought = purchases.filter((p) => p.contentIndex === i).length
+    const hasVideo = !(item.status === "draft" && i % 2 === 1)
     const offsetMs = item.dayOffset * DAY_MS
     const createdAt = new Date(
       now.getTime() - (item.status === "published" ? offsetMs : DAY_MS * (2 + i)),
@@ -60,10 +81,10 @@ async function seedWorkspaceContent(
       priceCents: item.priceCents,
       thumbnailKey: thumbPath(item.thumb),
       // Drafts may still be missing media; everything else plays the bundled sample reel
-      videoKey: item.status === "draft" && i % 2 === 1 ? null : SAMPLE_VIDEO,
-      videoFileName: `${item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}.mp4`,
-      videoSizeBytes: item.durationSeconds * 1_100_000,
-      durationSeconds: item.durationSeconds,
+      videoKey: hasVideo ? SAMPLE_VIDEO : null,
+      videoFileName: hasVideo ? `${item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}.mp4` : null,
+      videoSizeBytes: hasVideo ? sampleBytes : null,
+      durationSeconds: hasVideo ? SAMPLE_DURATION_SECONDS : null,
       status: item.status,
       scheduledFor: item.status === "scheduled" ? atNineAm(new Date(now.getTime() + offsetMs)) : null,
       publishedAt: item.status === "published" ? createdAt : null,
@@ -96,11 +117,14 @@ async function seedWorkspaceContent(
 }
 
 export async function clearDatabase(db: Database) {
+  await db.delete(schema.sessions)
+  await db.delete(schema.invitations)
   await db.delete(schema.purchases)
   await db.delete(schema.uploads)
   await db.delete(schema.content)
   await db.delete(schema.verifications)
   await db.delete(schema.memberships)
+  await db.delete(schema.roles)
   await db.delete(schema.workspaces)
   await db.delete(schema.users)
 }
@@ -108,13 +132,52 @@ export async function clearDatabase(db: Database) {
 export async function seedDatabase(db: Database, now = new Date()) {
   await clearDatabase(db)
 
-  await db.insert(schema.users).values([DEMO_USER, OTHER_USER])
+  const passwordHash = await hashPassword(DEMO_PASSWORD)
+  await db
+    .insert(schema.users)
+    .values([DEMO_USER, OTHER_USER, ...TEAM_USERS].map(({ id, name, email }) => ({ id, name, email, passwordHash })))
   await db.insert(schema.workspaces).values(Object.values(WORKSPACES).map((w) => ({ ...w })))
+
+  const studioRoles = await createSystemRoles(db, WORKSPACES.studio.id, {
+    [ESystemRole.Owner]: "rol_studio_owner",
+    [ESystemRole.Admin]: "rol_studio_admin",
+    [ESystemRole.Editor]: "rol_studio_editor",
+    [ESystemRole.Analyst]: "rol_studio_analyst",
+  })
+  const travelRoles = await createSystemRoles(db, WORKSPACES.travel.id)
+  const northRoles = await createSystemRoles(db, WORKSPACES.foreign.id)
+  await db.insert(schema.roles).values({
+    id: "rol_studio_producer",
+    workspaceId: WORKSPACES.studio.id,
+    name: "Video Producer",
+    description: "Uploads, edits and publishes videos, and can see how they perform",
+    permissions: ["view:analytics", "view:content", "create:content", "edit:content", "publish:content", "view:members"],
+  })
+
   await db.insert(schema.memberships).values([
-    { id: "mem_amara_studio", workspaceId: WORKSPACES.studio.id, userId: DEMO_USER.id, role: "owner" },
-    { id: "mem_amara_travel", workspaceId: WORKSPACES.travel.id, userId: DEMO_USER.id, role: "owner" },
-    { id: "mem_theo_north", workspaceId: WORKSPACES.foreign.id, userId: OTHER_USER.id, role: "owner" },
+    { id: "mem_amara_studio", workspaceId: WORKSPACES.studio.id, userId: DEMO_USER.id, roleId: studioRoles.owner },
+    { id: "mem_amara_travel", workspaceId: WORKSPACES.travel.id, userId: DEMO_USER.id, roleId: travelRoles.owner },
+    { id: "mem_theo_north", workspaceId: WORKSPACES.foreign.id, userId: OTHER_USER.id, roleId: northRoles.owner },
+    ...TEAM_USERS.map((u) => ({
+      id: `mem_${u.id.replace("usr_demo_", "")}_studio`,
+      workspaceId: WORKSPACES.studio.id,
+      userId: u.id,
+      roleId: studioRoles[u.role],
+    })),
   ])
+
+  // Theo has a pending invite, so the accept flow can be tried by logging in as him
+  const theoInviteToken = randomBytes(24).toString("base64url")
+  await db.insert(schema.invitations).values({
+    id: "inv_theo_studio",
+    workspaceId: WORKSPACES.studio.id,
+    email: OTHER_USER.email,
+    roleId: "rol_studio_producer",
+    invitedById: DEMO_USER.id,
+    tokenHash: createHash("sha256").update(theoInviteToken).digest("base64url"),
+    tokenCiphertext: encrypt(theoInviteToken, "invitation-token"),
+    expiresAt: new Date(now.getTime() + 14 * DAY_MS),
+  })
 
   const reviewedAt = new Date(now.getTime() - 400 * DAY_MS)
   await db.insert(schema.verifications).values([

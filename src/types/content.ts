@@ -13,9 +13,10 @@ export interface Content {
   status: EContentStatus
   scheduledFor: string | null
   publishedAt: string | null
-  views: number
-  purchases: number
-  revenueCents: number
+  /** null when the member's role can't see performance data */
+  views: number | null
+  purchases: number | null
+  revenueCents: number | null
   createdAt: string
   updatedAt: string
 }

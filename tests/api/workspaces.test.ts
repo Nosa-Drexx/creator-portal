@@ -3,20 +3,21 @@ import { POST as createWorkspace } from "@/app/api/workspaces/route"
 import { POST as createContent } from "@/app/api/workspaces/[slug]/content/route"
 import { GET as getSession } from "@/app/api/session/route"
 import { resetDatabase } from "@/server/db/setup"
-import { ctx, json, req } from "../support/request"
+import { ctx, json, req, signInAs } from "../support/request"
 
 const create = (body: unknown) => createWorkspace(req("/api/workspaces", { method: "POST", body }), ctx({}))
 
 describe("POST /api/workspaces", () => {
   beforeAll(async () => {
     await resetDatabase()
+    await signInAs("usr_demo_amara")
   })
 
   it("creates a workspace owned by the caller that starts unverified", async () => {
     const res = await create({ name: "Kitchen Table Sessions", handle: "kitchentable", accentColor: "#8b5cf6" })
     expect(res.status).toBe(201)
     const { data } = await json(res)
-    expect(data).toMatchObject({ slug: "kitchen-table-sessions", handle: "@kitchentable", role: "owner", canPublish: false })
+    expect(data).toMatchObject({ slug: "kitchen-table-sessions", handle: "@kitchentable", role: { name: "Owner", systemKey: "owner" }, canPublish: false })
 
     const session = await json(await getSession(req("/api/session"), ctx({})))
     expect(session.data.workspaces.map((w: { slug: string }) => w.slug)).toContain("kitchen-table-sessions")
