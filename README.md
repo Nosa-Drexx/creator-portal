@@ -215,7 +215,7 @@ Each change was also checked by hand in Chrome at desktop and 390px mobile width
 - **No real transcoding or CDN.** Uploaded videos play back as uploaded, through signed, range-capable URLs. The production pipeline is designed in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Uploads are single-request PUTs,** capped at 500 MB in the demo. Production would use resumable multipart uploads (described in the architecture doc).
 - **Scheduled content goes live when it's next read,** not from a background scheduler.
-- **Seeded media is public** (`/public/seed`). Uploaded media is private and signed.
+- **Seeded media is public** (`/public/seed`). Uploaded media is private and signed. All seeded videos play one short bundled clip, so they honestly report its real 8-second length and size. Videos you upload show their own.
 - **On Vercel without `DATABASE_URL`,** the database and uploads live in `/tmp` and reset on cold starts. Point `DATABASE_URL` at Turso for a persistent deployed demo. Local setup is fully persistent.
 - **Invitations aren't emailed.** Invites appear in-app and as a copyable link, and sending them via an email provider is the next step. Role changes take effect on the member's next request.
 

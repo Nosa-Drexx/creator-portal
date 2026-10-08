@@ -1,6 +1,8 @@
 import type { Database } from "../client"
 import * as schema from "../schema"
 import { createHash, randomBytes } from "node:crypto"
+import { statSync } from "node:fs"
+import path from "node:path"
 import { ESystemRole } from "@/constants/permissions"
 import { hashPassword } from "@/server/auth/password"
 import { createSystemRoles } from "@/server/services/system-roles"
@@ -30,6 +32,16 @@ async function insertChunked<T extends Record<string, unknown>>(
 }
 
 const SAMPLE_VIDEO = "/seed/videos/sample-reel.mp4"
+// Seeded videos all play this clip, so they report its real length and size
+const SAMPLE_DURATION_SECONDS = 8
+
+function sampleVideoBytes() {
+  try {
+    return statSync(path.join(process.cwd(), "public", SAMPLE_VIDEO)).size
+  } catch {
+    return null
+  }
+}
 
 function atNineAm(date: Date) {
   date.setHours(9, 0, 0, 0)
@@ -51,9 +63,11 @@ async function seedWorkspaceContent(
   const rand = createRandom(seed)
   const purchases = generatePurchases(items, now, rand)
   const ids = items.map((_, i) => `cnt_${prefix}_${String(i + 1).padStart(2, "0")}`)
+  const sampleBytes = sampleVideoBytes()
 
   const contentRows = items.map((item, i) => {
     const bought = purchases.filter((p) => p.contentIndex === i).length
+    const hasVideo = !(item.status === "draft" && i % 2 === 1)
     const offsetMs = item.dayOffset * DAY_MS
     const createdAt = new Date(
       now.getTime() - (item.status === "published" ? offsetMs : DAY_MS * (2 + i)),
@@ -66,10 +80,10 @@ async function seedWorkspaceContent(
       priceCents: item.priceCents,
       thumbnailKey: thumbPath(item.thumb),
       // Drafts may still be missing media; everything else plays the bundled sample reel
-      videoKey: item.status === "draft" && i % 2 === 1 ? null : SAMPLE_VIDEO,
-      videoFileName: `${item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}.mp4`,
-      videoSizeBytes: item.durationSeconds * 1_100_000,
-      durationSeconds: item.durationSeconds,
+      videoKey: hasVideo ? SAMPLE_VIDEO : null,
+      videoFileName: hasVideo ? `${item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}.mp4` : null,
+      videoSizeBytes: hasVideo ? sampleBytes : null,
+      durationSeconds: hasVideo ? SAMPLE_DURATION_SECONDS : null,
       status: item.status,
       scheduledFor: item.status === "scheduled" ? atNineAm(new Date(now.getTime() + offsetMs)) : null,
       publishedAt: item.status === "published" ? createdAt : null,
