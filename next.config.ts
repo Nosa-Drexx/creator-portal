@@ -1,9 +1,20 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  devIndicators: { position: "bottom-right" },
+  serverExternalPackages: ["@libsql/client", "libsql"],
+  // Migrations are read at runtime by the auto-setup on first request
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./src/server/db/migrations/**/*"],
+  },
+  images: {
+    localPatterns: [
+      { pathname: "/seed/**", search: "" },
+      { pathname: "/api/media/**" },
+    ],
+  },
   turbopack: {
     rules: {
       "*.css": {
@@ -12,6 +23,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

@@ -1,0 +1,14 @@
+import type { Metadata } from "next"
+import { ClientBoundary } from "@/components/shared/ClientBoundary"
+import { NewContentPage } from "@/components/Content/ContentEditorPage"
+import { ContentEditorSkeleton } from "@/components/Content/ContentEditorSkeleton"
+
+export const metadata: Metadata = { title: "Upload video" }
+
+export default function Page() {
+  return (
+    <ClientBoundary fallback={<ContentEditorSkeleton />}>
+      <NewContentPage />
+    </ClientBoundary>
+  )
+}
