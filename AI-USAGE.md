@@ -40,17 +40,25 @@ Before any code was written, I gave the AI a detailed brief: what to build, how 
 | 10 | No way for users to manage their own account. | **I asked for profile management:** name, password and profile photo. I also had email made read-only, since it's the login identifier. Photos are cropped and resized in the browser, and changing the password signs out other devices. |
 | 11 | Workspace access was all-or-nothing (owners plus a simple editor rule). | **I asked for real roles and permissions**, built the way I build permission guards in production apps: `action:module` permissions, permission helpers, a `usePermissions` hook, `<CanX>` and `<RequirePermission>` guard components, permission-filtered navigation, member invitations and custom roles. I also required server-side enforcement so the UI guards are only UX. |
 | 12 | Allowed owners to grant ownership and only protected the *last* owner, and let people change their own role. | **I tightened the ownership rules:** the owner's role can never be changed (by themselves or by admins with member permissions), the owner can't be removed or leave, and nobody can change their own role. The AI made the Owner role non-assignable to keep "one fixed owner" consistent, enforced it in the API, mirrored it in the UI and added tests. |
-| 13 | Put Log out inside the account menu, behind a row that didn't look clickable. | **I couldn't find how to log out**, which flagged a discoverability problem. The account row now shows a menu chevron, and **Demo & settings** has an Account card with a visible Log out button. |
-| 14 | The app had no brand identity: a default favicon and no social metadata. | **I added branding and SEO as a feature.** The AI designed the app icon (an SVG source rendered to PNG), I generated the favicon set from it, then the AI produced the Open Graph banner and wired the site metadata (title template, description, icons, Open Graph and Twitter cards, `metadataBase`) following the standard Next.js metadata conventions. |
-| 15 | The login page scrolled as a whole on desktop, dragging the brand panel along once more demo accounts were added. | **I caught the layout bug.** On large screens the page is now exactly one viewport: the brand panel is fixed and only the form column scrolls. The demo accounts became a compact two-column grid, so the form fits without scrolling. |
-| 16 | The Content table rendered every video with no pagination, unnoticeable with only 14 seeded. | **I spotted the missing pagination.** The Content table now paginates (10 per page, page kept in the URL, reset when filters change) using the same component as Purchases, and the demo catalogue grew to 26 videos so it shows by default. |
-| 17 | Draft rows without a video still showed a thumbnail and duration in the Content list, while the detail page said "No video uploaded yet". | **I caught the inconsistency.** The list now shows a generic "No video yet" tile when there's no video, and the API never returns video metadata (duration, file, size) without a video file. |
-| 18 | Seeded videos had made-up durations (e.g. 1:10:00) and sizes, but all play the same 8-second sample clip, so the list and the player disagreed. | **I caught the mismatch.** Seeded videos now report the real duration and size of the clip they play. Uploaded videos already store the duration read from the actual file. |
-| 19 | The sort dropdown rendered 32px tall next to a 40px search input on mobile. | **I caught the height mismatch.** The cause was the shadcn Select setting its height with an attribute variant that overrode every caller's height. The default is now an overridable class, so all selects honour their size: 40px toolbar controls on mobile, and the invite modal's role field matching the email input. |
+| 13 | The app had no brand identity: a default favicon and no social metadata. | **I added branding and SEO as a feature.** The AI designed the app icon (an SVG source rendered to PNG), I generated the favicon set from it, then the AI produced the Open Graph banner and wired the site metadata (title template, description, icons, Open Graph and Twitter cards, `metadataBase`) following the standard Next.js metadata conventions. |
 
 _(more entries are added as development continues)_
 
-## Problems caught during verification and fixed before they shipped
+## Bugs I caught while testing, and how they were fixed
+
+I tested every feature by hand at desktop and mobile widths. These are bugs I found in the AI's work, with the root cause it traced and the fix I accepted.
+
+| # | What I saw | Root cause | Fix |
+| --- | --- | --- | --- |
+| 1 | I couldn't find how to log out. | Log out lived inside an account menu whose trigger didn't look clickable. | The account row now shows a menu chevron, and **Demo & settings** has an Account card with a visible Log out button. |
+| 2 | On desktop the login page scrolled as a whole, dragging the brand panel with it. | The auth layout grew with its content once more demo accounts were added. | The page is exactly one viewport on large screens: the brand panel is fixed and only the form column scrolls. The demo accounts became a compact grid. |
+| 3 | The Content table had no pagination. | The list rendered every video. With only 14 seeded, nobody noticed. | Client-side pagination (10 per page, page in the URL, resets when filters change) using the same component as Purchases. The demo catalogue grew to 26 videos. |
+| 4 | A draft with no video showed a thumbnail and duration in the list, while its detail page said "No video uploaded yet". | Seed data gave video-less drafts a thumbnail, duration, file name and size, and the list didn't check for a video. | A "No video yet" tile when there's no video, and the API never returns video metadata without a video file. |
+| 5 | List durations (e.g. 1:10:00) didn't match the player (0:08). | Every seeded video plays the same 8-second clip, but the seed invented lengths and sizes. | Seeded videos report the real duration and size of the clip they play. |
+| 6 | On mobile the sort dropdown was shorter than the search input next to it. | shadcn's Select set its height with an attribute variant that silently overrode every caller's height. | The default is now an overridable class. Toolbar controls are all 40px on mobile, and the invite modal's role field matches the email input. |
+| 7 | "Use frame as thumbnail" didn't use the frame I'd paused on. It always used a generic early frame. | It loaded a hidden copy of the video and always captured at 1 second. | It now captures exactly what the visible player shows (falling back to the same timestamp on a hidden copy), and the button reads "Use this frame as thumbnail". Verified by comparing the player frame with the resulting thumbnail. |
+
+## Problems caught by automated checks and my review of the AI's output
 
 These are cases where the AI's first attempt was wrong, and testing (not trust) caught it:
 
@@ -76,6 +84,7 @@ These are cases where the AI's first attempt was wrong, and testing (not trust) 
 - **Automated:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (51 tests, including endpoint tests that call the real route handlers against a throwaway SQLite database) and `pnpm build`.
 - **API by hand:** `curl` checks of the publishing rule (403 `VERIFICATION_REQUIRED`), tenant isolation (404 across workspaces), signed upload replay and tampering, and HTTP range requests for video seeking.
 - **Browser:** end-to-end walkthroughs in Chrome of every flow (dashboard, upload with real progress, frame-to-thumbnail, publish gate, verification, destructive confirmations) at desktop and at a 390px mobile viewport, in light and dark themes.
+- **My own manual QA:** I used the app as a creator on desktop and mobile and reported bugs back. Each was traced to a root cause before fixing (see "Bugs I caught while testing").
 - **Review:** I read every diff myself before committing.
 
 ## What I deliberately did myself, and why
