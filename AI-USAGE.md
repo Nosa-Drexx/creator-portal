@@ -32,6 +32,8 @@ I didn't ask for "build me a creator portal." Before any code was written, I gav
 | 3 | — | I set a rule that project documentation describes patterns as my own conventions and does not refer to other codebases. |
 | 4 | Tends to write long, explanatory code comments. | **Corrected:** I told it to keep comments few and short, and only where they add information the code doesn't already show. |
 | 5 | Proposed a hard-coded production domain for workspace URLs. | **Changed:** every URL and domain comes from env vars documented in `.env.example`, because the real domain depends on where the app is deployed (Vercel). |
+| 7 | Built multi-tenancy with a workspace switcher, but workspaces could only come from seed data. | **I spotted the gap:** a multi-tenant product needs a way to create a tenant. Added a "New workspace" flow (endpoint and UI). |
+| 8 | Sidebar had fixed widths per breakpoint. | **I asked for a collapsible sidebar**, mainly for tablets. Added a collapse toggle (⌘B) that is remembered, and collapsed by default on tablet widths. |
 | 6 | Planned charts from scratch, since my reference patterns didn't include a dashboard chart. | I pointed it to my existing admin-portal chart patterns so the dashboard matches how I already build charts. |
 
 _(more entries are added as development continues)_
