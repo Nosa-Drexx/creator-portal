@@ -38,6 +38,7 @@ export function ContentMobileList({ items, onDelete }: ContentMobileListProps) {
               src={item.thumbnailKey}
               title={item.title}
               durationSeconds={item.durationSeconds}
+              hasVideo={!!item.videoKey}
               className="pointer-events-none w-[112px]"
               sizes="112px"
             />

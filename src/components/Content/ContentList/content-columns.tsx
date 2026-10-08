@@ -28,6 +28,7 @@ export function buildContentColumns(onDelete: (item: Content) => void, showMetri
             src={row.original.thumbnailKey}
             title={row.original.title}
             durationSeconds={row.original.durationSeconds}
+            hasVideo={!!row.original.videoKey}
             className="w-[88px]"
             sizes="88px"
             zoomOnHover

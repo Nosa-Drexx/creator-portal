@@ -8,6 +8,7 @@ export interface ContentFixture {
   status: ContentStatus
   /** Days ago (published) or days ahead (scheduled) */
   dayOffset: number
+  /** Kept for realism in fixtures; seeded rows use the bundled clip's real length */
   durationSeconds: number
   /** Relative popularity, drives views and purchases */
   weight: number

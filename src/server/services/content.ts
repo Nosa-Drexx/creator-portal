@@ -32,9 +32,10 @@ function toDto(row: ContentRow, purchaseCount = 0, revenueCents = 0): Content {
     priceCents: row.priceCents,
     thumbnailKey: row.thumbnailKey,
     videoKey: row.videoKey,
-    videoFileName: row.videoFileName,
-    videoSizeBytes: row.videoSizeBytes,
-    durationSeconds: row.durationSeconds,
+    // Video metadata only exists alongside a video file
+    videoFileName: row.videoKey ? row.videoFileName : null,
+    videoSizeBytes: row.videoKey ? row.videoSizeBytes : null,
+    durationSeconds: row.videoKey ? row.durationSeconds : null,
     status: row.status as EContentStatus,
     scheduledFor: row.scheduledFor?.toISOString() ?? null,
     publishedAt: row.publishedAt?.toISOString() ?? null,
