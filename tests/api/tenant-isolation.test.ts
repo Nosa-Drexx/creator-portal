@@ -4,16 +4,18 @@ import { GET as getContentItem } from "@/app/api/workspaces/[slug]/content/[id]/
 import { GET as listPurchases } from "@/app/api/workspaces/[slug]/purchases/route"
 import { POST as signMedia } from "@/app/api/workspaces/[slug]/media/sign/route"
 import { POST as createUpload } from "@/app/api/workspaces/[slug]/uploads/route"
-import { DEMO_COOKIES } from "@/constants/demo"
 import { resetDatabase } from "@/server/db/setup"
 import { cookieJar } from "../support/setup"
-import { ctx, json, req } from "../support/request"
+import { ctx, json, req, signInAs } from "../support/request"
 
 describe("tenant isolation", () => {
   beforeAll(async () => {
     await resetDatabase()
   })
-  beforeEach(() => cookieJar.clear())
+  beforeEach(async () => {
+    cookieJar.clear()
+    await signInAs("usr_demo_amara")
+  })
 
   it("returns 404 (not 403) for a workspace the user doesn't belong to", async () => {
     const res = await getWorkspace(req("/api/workspaces/northbound-films"), ctx({ slug: "northbound-films" }))
@@ -53,7 +55,7 @@ describe("tenant isolation", () => {
   })
 
   it("scopes access to the signed-in user", async () => {
-    cookieJar.set(DEMO_COOKIES.session, "usr_demo_theo")
+    await signInAs("usr_demo_theo")
     const own = await getWorkspace(req("/api/workspaces/northbound-films"), ctx({ slug: "northbound-films" }))
     const other = await getWorkspace(req("/api/workspaces/amara-studio"), ctx({ slug: "amara-studio" }))
     expect(own.status).toBe(200)

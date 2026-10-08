@@ -20,6 +20,15 @@ pnpm dev
 
 Open **http://localhost:3000**. On the first request the app creates `.data/creatorhub.db`, runs migrations and seeds demo data automatically.
 
+**Log in** with a one-click demo account on the login page, or with these credentials:
+
+| Account | Email | Password |
+|---|---|---|
+| Amara Lewis (owns *Amara Studio* and *Wild Frames*) | `amara@creatorhub.dev` | `creatorhub-demo1` |
+| Theo Marsh (owns *Northbound Films*) | `theo@creatorhub.dev` | `creatorhub-demo1` |
+
+You can also **create an account**. New users go through a short onboarding step to create their first workspace.
+
 | Script | What it does |
 |---|---|
 | `pnpm dev` | Start the dev server |
@@ -35,7 +44,7 @@ Environment variables are all optional locally. See [`.env.example`](.env.exampl
 
 ## What to try (about 5 minutes)
 
-You're signed in as **Amara Lewis**, who owns two workspaces. Switch between them from the top of the sidebar (or the top bar on mobile).
+Log in as **Amara Lewis**, who owns two workspaces. Switch between them from the top of the sidebar (or the top bar on mobile).
 
 | Workspace | State | Use it to see |
 |---|---|---|
@@ -134,11 +143,12 @@ Not requested in the brief. I added it as the product improvement I chose to imp
 pnpm test
 ```
 
-There are 27 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
+There are 34 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
 
 - **The publishing rule at the endpoint:** unverified, pending and verified workspaces; create vs update; draft vs publish vs schedule.
 - **Tenant isolation:** foreign workspaces, foreign content IDs, purchase scoping, cross-tenant media signing, and per-user access.
 - **Workspace creation:** ownership, slug collisions, validation.
+- **Authentication:** 401 without a session, login, identical errors for unknown email vs wrong password, rate limiting, signup, and session invalidation on logout (a replayed cookie is rejected).
 - **Unit tests:** the publishing rule, content payload validation, and signed URL expiry and tampering.
 
 Each change was also checked by hand in Chrome at desktop and 390px mobile widths, in light and dark themes, and with a production build (`pnpm build`).
@@ -147,7 +157,7 @@ Each change was also checked by hand in Chrome at desktop and 390px mobile width
 
 ## Assumptions
 
-- **Authentication is simulated.** Every request acts as the seeded demo user (overridable with the `ch_session` cookie, which the tests use to act as a second user). Production authentication is out of scope per the brief.
+- **Email and password authentication** is built in (scrypt-hashed passwords, opaque server-side sessions in an `httpOnly` cookie, rate-limited login). There's no email verification, password reset or OAuth yet.
 - **Verification is simulated** and auto-approves after `VERIFICATION_REVIEW_SECONDS` (default 20). No external provider is called.
 - **Verification belongs to the workspace** (the payout entity), not the person. A new workspace starts unverified.
 - **"Publishing" includes scheduling.** Both make content public, so both require verification.
@@ -171,7 +181,7 @@ _TODO (author): approximately N hours._
 ## Next priorities
 
 1. **Resumable multipart uploads with a global upload tray** (see [Product #2](docs/PRODUCT.md)). This is the biggest reliability win for creators on mobile and slow networks.
-2. **Real auth** (for example Auth.js or Clerk) with workspace invitations, because tenancy is only as strong as identity.
+2. **Hardening auth:** email verification, password reset, OAuth and optional 2FA.
 3. **A processing pipeline stub:** a job table, states (`processing` → `ready` / `failed`) and an event-driven UI, so the product reflects how video really works.
 4. **Postgres plus rollup tables for analytics** before data volume grows.
 5. **Playwright end-to-end tests** for the publish gate and verification flow, run in CI with the existing Vitest suite.
@@ -187,20 +197,20 @@ The separation follows how the app changes over time. UI changes most often, bus
 - Postgres instead of SQLite, with read replicas and purchases partitioned by month.
 - Precomputed analytics rollups instead of aggregating on read, and events streamed to a columnar store.
 - Redis for hot counters and entitlement caching.
-- Real auth with session caching.
+- Session lookups cached in Redis.
 - Object storage and a CDN with the processing pipeline in [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - Background jobs (scheduled publishing, review webhooks) on a queue.
 - Rate limiting per tenant.
 - On the frontend: route-level code splitting is already in place. Next would be virtualised tables for very large catalogues and cursor pagination.
 
 **Security: what to address before production?**
-- Real authentication with session rotation and CSRF protection on mutations.
+- Auth hardening: email verification, password reset, session rotation and a "sign out everywhere" option, Redis-backed rate limiting (the current limiter is per-process), and CSRF tokens on mutations (`SameSite=Lax` cookies cover the common cases today).
 - Encryption of verification PII and documents at rest (KMS), with a retention policy and access auditing.
 - Content-type sniffing and malware scanning of uploads.
 - Rotating `MEDIA_SIGNING_SECRET` through a secrets manager.
 - Rate limiting and abuse detection on uploads, signing and playback.
 - Strict CSP and security headers.
-- Removing the demo endpoints (`/api/demo`) and the demo session fallback.
+- Removing the demo endpoints (`/api/demo`) and the one-click demo accounts.
 - Row-level security as defence in depth for tenancy.
 - Dependency and secret scanning in CI.
 - An audit log of who published or deleted what.

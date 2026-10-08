@@ -8,6 +8,18 @@ export const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 })
 
+// An expired or revoked session sends the user to log in, then back to where they were
+apiClient.interceptors.response.use(undefined, (error) => {
+  const isAuthCall = String(error?.config?.url ?? "").startsWith("/auth/")
+  if (typeof window !== "undefined" && error?.response?.status === 401 && !isAuthCall) {
+    const next = encodeURIComponent(window.location.pathname + window.location.search)
+    // Full navigation on purpose: wipes every cached query from the old session
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.assign(`/login?next=${next}`)
+  }
+  return Promise.reject(error)
+})
+
 /** Unwraps the `{ success, data }` envelope every route returns */
 export interface Envelope<T> {
   success: true

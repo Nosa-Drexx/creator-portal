@@ -5,8 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { SquareLock02Icon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
 import { ErrorState } from "@/components/shared/ErrorState"
-import { DEFAULT_WORKSPACE_SLUG } from "@/constants/demo"
-import { routes } from "@/constants/routes"
 import { EErrorCode } from "@/enums/errors"
 import { useWorkspace } from "@/hooks/queries/use-workspace"
 import { isApiErrorCode } from "@/lib/axios"
@@ -29,7 +27,7 @@ export function WorkspaceGate() {
             This workspace doesn&apos;t exist, or you&apos;re not a member of it. Ask an owner to invite you.
           </p>
           <Button asChild>
-            <Link href={routes.overview(DEFAULT_WORKSPACE_SLUG)}>Go to my workspace</Link>
+            <Link href="/">Go to my workspace</Link>
           </Button>
         </div>
       </div>

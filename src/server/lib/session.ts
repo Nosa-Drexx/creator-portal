@@ -1,21 +1,22 @@
 import "server-only"
 
-import { eq } from "drizzle-orm"
 import { cookies } from "next/headers"
 import { DEMO_COOKIES } from "@/constants/demo"
-import { db } from "@/server/db/client"
-import { users, type UserRow } from "@/server/db/schema"
-import { DEMO_USER } from "@/server/db/seed/fixtures"
-import { AppError } from "./errors"
 import { EErrorCode } from "@/enums/errors"
+import { getSessionUser } from "@/server/auth/sessions"
+import type { UserRow } from "@/server/db/schema"
+import { AppError } from "./errors"
 
-/**
- * Simulated auth: production auth is out of scope for the brief, so every
- * request acts as the seeded demo user unless the session cookie names another.
- */
 export async function requireUser(): Promise<UserRow> {
-  const userId = (await cookies()).get(DEMO_COOKIES.session)?.value ?? DEMO_USER.id
-  const user = await db.query.users.findFirst({ where: eq(users.id, userId) })
-  if (!user) throw new AppError(EErrorCode.Unauthenticated, 401, "Your session has expired")
+  const user = await getSessionUser()
+  if (!user) {
+    // Drop a stale cookie so the proxy doesn't bounce the user away from /login
+    ;(await cookies()).delete(DEMO_COOKIES.session)
+    throw new AppError(EErrorCode.Unauthenticated, 401, "Please log in to continue")
+  }
   return user
+}
+
+export function toUserDto(user: UserRow) {
+  return { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl }
 }

@@ -14,9 +14,27 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  // Empty only for rows created before auth existed; setup re-seeds those
+  passwordHash: text("password_hash").notNull().default(""),
   avatarUrl: text("avatar_url"),
   ...timestamps,
 })
+
+/** Only a SHA-256 of the session token is stored, so a DB leak can't be replayed as cookies */
+export const sessions = sqliteTable(
+  "sessions",
+  {
+    id: text("id").primaryKey(),
+    tokenHash: text("token_hash").notNull().unique(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+    userAgent: text("user_agent"),
+    ...timestamps,
+  },
+  (t) => [index("sessions_user_idx").on(t.userId)],
+)
 
 export const workspaces = sqliteTable("workspaces", {
   id: text("id").primaryKey(),
@@ -131,6 +149,7 @@ export const uploads = sqliteTable("uploads", {
 })
 
 export type UserRow = typeof users.$inferSelect
+export type SessionRow = typeof sessions.$inferSelect
 export type WorkspaceRow = typeof workspaces.$inferSelect
 export type MembershipRow = typeof memberships.$inferSelect
 export type VerificationRow = typeof verifications.$inferSelect

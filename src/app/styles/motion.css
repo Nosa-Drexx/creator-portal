@@ -98,3 +98,9 @@
     transform: scaleX(0);
   }
 }
+
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}

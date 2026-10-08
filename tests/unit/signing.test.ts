@@ -15,7 +15,7 @@ describe("signed media URLs", () => {
     const { url } = signUrl("/api/media", "get", "ws_a/video/1.mp4", 60)
     expect(verifySignature("get", "ws_b/video/1.mp4", params(url))).toBe(false)
     expect(verifySignature("put", "ws_a/video/1.mp4", params(url))).toBe(false)
-    expect(verifySignature("get", "ws_a/video/1.mp4", params(url.replace(/sig=./, "sig=x")))).toBe(false)
+    expect(verifySignature("get", "ws_a/video/1.mp4", params(url.replace(/sig=(.)/, (_, c: string) => `sig=${c === "a" ? "b" : "a"}`)))).toBe(false)
   })
 
   it("expires", () => {

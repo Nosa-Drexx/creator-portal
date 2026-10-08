@@ -13,6 +13,8 @@ export interface ContentFixture {
   weight: number
 }
 
+export { DEMO_PASSWORD } from "@/constants/demo"
+
 export const DEMO_USER = {
   id: "usr_demo_amara",
   name: "Amara Lewis",
