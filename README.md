@@ -2,9 +2,9 @@
 
 The first version of the CreatorHub **Creator Portal**. Creators upload and publish paid video, track revenue and purchases, and verify their identity before they can publish. It's built as a full-stack Next.js app with a deliberate focus on frontend architecture, mobile usability and real-world application states.
 
-| | |
-|---|---|
-| **Docs** | [Video architecture, diagram and cost estimate](docs/ARCHITECTURE.md) · [Product improvements](docs/PRODUCT.md) · [AI usage](AI-USAGE.md) |
+|           |                                                                                                                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Docs**  | [Video architecture, diagram and cost estimate](docs/ARCHITECTURE.md) · [Product improvements](docs/PRODUCT.md) · [AI usage](AI-USAGE.md)                                                                     |
 | **Stack** | Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui · TanStack Query · axios · react-hook-form + zod · motion · Recharts · Drizzle ORM + libSQL (SQLite) · Vitest |
 
 ---
@@ -24,24 +24,24 @@ Open **http://localhost:3000**. On the first request the app creates `.data/crea
 
 Every account uses the password `creatorhub-demo1`.
 
-| Account | Email | What it shows |
-|---|---|---|
-| **Amara Lewis**, Owner | `amara@creatorhub.dev` | Everything. Owns *Amara Studio* (verified) and *Wild Frames* (unverified) |
+| Account                 | Email                   | What it shows                                                                  |
+| ----------------------- | ----------------------- | ------------------------------------------------------------------------------ |
+| **Amara Lewis**, Owner  | `amara@creatorhub.dev`  | Everything. Owns _Amara Studio_ (verified) and _Wild Frames_ (unverified)      |
 | **Jordan Blake**, Admin | `jordan@creatorhub.dev` | Manages content and the team, but can't submit verification or grant ownership |
-| **Priya Shah**, Editor | `priya@creatorhub.dev` | Uploads and edits only. No dashboard, no sales, can't publish or delete |
-| **Sam Okafor**, Analyst | `sam@creatorhub.dev` | Read-only stats, content and purchases |
-| **Theo Marsh**, Owner | `theo@creatorhub.dev` | Owns *Northbound Films* and has a **pending invite** to Amara Studio |
+| **Priya Shah**, Editor  | `priya@creatorhub.dev`  | Uploads and edits only. No dashboard, no sales, can't publish or delete        |
+| **Sam Okafor**, Analyst | `sam@creatorhub.dev`    | Read-only stats, content and purchases                                         |
+| **Theo Marsh**, Owner   | `theo@creatorhub.dev`   | Owns _Northbound Films_ and has a **pending invite** to Amara Studio           |
 
 You can also **create an account**. New users go through a short onboarding step to create their first workspace.
 
-| Script | What it does |
-|---|---|
-| `pnpm dev` | Start the dev server |
-| `pnpm build && pnpm start` | Production build |
-| `pnpm test` | Unit and API tests (Vitest) |
-| `pnpm typecheck` · `pnpm lint` | TypeScript and ESLint |
-| `pnpm db:reset` | Wipe uploads and re-seed the database |
-| `pnpm db:studio` | Browse the database with Drizzle Studio |
+| Script                         | What it does                            |
+| ------------------------------ | --------------------------------------- |
+| `pnpm dev`                     | Start the dev server                    |
+| `pnpm build && pnpm start`     | Production build                        |
+| `pnpm test`                    | Unit and API tests (Vitest)             |
+| `pnpm typecheck` · `pnpm lint` | TypeScript and ESLint                   |
+| `pnpm db:reset`                | Wipe uploads and re-seed the database   |
+| `pnpm db:studio`               | Browse the database with Drizzle Studio |
 
 Environment variables are all optional locally. See [`.env.example`](.env.example).
 
@@ -51,14 +51,14 @@ Environment variables are all optional locally. See [`.env.example`](.env.exampl
 
 Log in as **Amara Lewis**, who owns two workspaces. Switch between them from the top of the sidebar (or the top bar on mobile).
 
-| Workspace | State | Use it to see |
-|---|---|---|
+| Workspace                            | State                                | Use it to see                                                                                                          |
+| ------------------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | **Amara Studio** (`/w/amara-studio`) | Verified, 26 videos, 1,762 purchases | Dashboard, chart ranges, content table with pagination, purchase search, filters, sorting and pagination, edit, delete |
-| **Wild Frames** (`/w/wild-frames`) | **Unverified**, 3 drafts, no sales | Empty states and the **publishing gate** |
+| **Wild Frames** (`/w/wild-frames`)   | **Unverified**, 3 drafts, no sales   | Empty states and the **publishing gate**                                                                               |
 
-1. **Publishing rule.** In *Wild Frames*, click **Upload video** and try **Publish now**. You'll get a "Verify to publish" prompt that offers to save your work as a draft. The API enforces the same rule: `POST`/`PUT` content with `published` or `scheduled` returns `403 VERIFICATION_REQUIRED`.
+1. **Publishing rule.** In _Wild Frames_, click **Upload video** and try **Publish now**. You'll get a "Verify to publish" prompt that offers to save your work as a draft. The API enforces the same rule: `POST`/`PUT` content with `published` or `scheduled` returns `403 VERIFICATION_REQUIRED`.
 2. **Upload.** Drop any MP4 into the editor. There's real upload progress (bytes, speed, time left), cancel and retry, **"Use frame as thumbnail"**, and a live buyer preview. A sample clip is at `public/seed/videos/sample-reel.mp4`.
-3. **Verification.** Open **Verification** in *Wild Frames*. Personal info → ID document → selfie (camera, or upload) → review → submitted. The simulated review approves in about 20 seconds and publishing unlocks **without a refresh**. Refresh mid-wizard and your progress is kept.
+3. **Verification.** Open **Verification** in _Wild Frames_. Personal info → ID document → selfie (camera, or upload) → review → submitted. The simulated review approves in about 20 seconds and publishing unlocks **without a refresh**. Refresh mid-wizard and your progress is kept.
 4. **Content and purchases.** The Content table paginates 10 per page client-side, with the page, filters and sort kept in the URL. On Purchases you can search by buyer, email, video or country. Filter by status, sort by date or amount, and paginate. All of it is server-side and kept in the URL, so filtered views can be shared.
 5. **Multi-tenancy.** Create a workspace from the switcher (**New workspace**), or open another creator's workspace (`/w/northbound-films`) and get a 404.
 6. **Mobile.** Narrow the window to about 390px. You'll see a bottom tab bar with a centre upload button, card layouts instead of tables, bottom-sheet dialogs, and sticky primary actions.
@@ -70,12 +70,12 @@ Log in as **Amara Lewis**, who owns two workspaces. Switch between them from the
 
 **Demo & settings** (in the sidebar) has reviewer controls, so you never need to touch the database:
 
-| Control | Effect |
-|---|---|
-| **Verification state** | Switch the current workspace between Unverified, In review and Verified |
-| **API behaviour** | **Slow** adds about 2s to every request (loading states). **Failing** returns 503s (error states and retry) |
-| **Tenant isolation** | Opens a workspace you don't belong to |
-| **Reset demo data** | Restores the seed and clears uploads, with confirmation |
+| Control                | Effect                                                                                                      |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Verification state** | Switch the current workspace between Unverified, In review and Verified                                     |
+| **API behaviour**      | **Slow** adds about 2s to every request (loading states). **Failing** returns 503s (error states and retry) |
+| **Tenant isolation**   | Opens a workspace you don't belong to                                                                       |
+| **Reset demo data**    | Restores the seed and clears uploads, with confirmation                                                     |
 
 ### Data, persistence and reset
 
@@ -138,6 +138,7 @@ Permissions are `action:module` strings (for example `publish:content` or `view:
   - `<RequirePermission>` on every route, with an `AccessDenied` fallback.
 
   Navigation is filtered by permission (`navItemsForPermissions`), and login or workspace switching lands on the first page your role can open.
+
 - **Two separate publish locks.** "Your role can't publish" is distinct from "verify your identity". An Editor in a verified workspace gets the first message, not a misleading verification prompt.
 - **Invitations are bound to an email address.** They expire after 14 days. The token is looked up by its hash, and an AES-256-GCM encrypted copy lets admins copy the link again until it's accepted, declined or revoked. There's no email sending in the demo: the inviter copies a link, and invitees also see pending invites in-app.
 
@@ -151,15 +152,15 @@ Permissions are `action:module` strings (for example `publish:content` or `view:
 
 ### Key technical choices
 
-| Choice | Why |
-|---|---|
-| **libSQL / SQLite + Drizzle** | Zero setup for reviewers, real persistence, real SQL (aggregations, joins, indexes, transactions). The same Drizzle code runs on Turso, or on Postgres with a dialect change. |
-| **Next.js route handlers as the backend** | One deployable unit. The brief asks for at least one endpoint that enforces the publishing rule; all of them go through the same validation, tenancy and error handling. |
-| **TanStack Query + axios repositories** | Caching, background refetching, `keepPreviousData` for smooth pagination, polling while a verification is in review, and invalidation after mutations. |
-| **URL state (nuqs)** | Filters, sorting, pages and chart ranges survive a refresh and can be shared. |
-| **Signed URLs for uploads and media** | Mirrors production (presigned S3 PUT and signed CDN GET). Uploads go straight to storage, not through business logic, and paid media is never publicly addressable. |
-| **Cache Components (PPR)** | Each route ships a static shell instantly. Tenant-aware parts stream in behind small Suspense boundaries with matching skeletons. |
-| **motion, used sparingly** | A sliding nav indicator, rolling numbers, staggered stat cards, step transitions in the wizard, and accent colour transitions between workspaces. Everything respects `prefers-reduced-motion`. |
+| Choice                                    | Why                                                                                                                                                                                             |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **libSQL / SQLite + Drizzle**             | Zero setup for reviewers, real persistence, real SQL (aggregations, joins, indexes, transactions). The same Drizzle code runs on Turso, or on Postgres with a dialect change.                   |
+| **Next.js route handlers as the backend** | One deployable unit. The brief asks for at least one endpoint that enforces the publishing rule; all of them go through the same validation, tenancy and error handling.                        |
+| **TanStack Query + axios repositories**   | Caching, background refetching, `keepPreviousData` for smooth pagination, polling while a verification is in review, and invalidation after mutations.                                          |
+| **URL state (nuqs)**                      | Filters, sorting, pages and chart ranges survive a refresh and can be shared.                                                                                                                   |
+| **Signed URLs for uploads and media**     | Mirrors production (presigned S3 PUT and signed CDN GET). Uploads go straight to storage, not through business logic, and paid media is never publicly addressable.                             |
+| **Cache Components (PPR)**                | Each route ships a static shell instantly. Tenant-aware parts stream in behind small Suspense boundaries with matching skeletons.                                                               |
+| **motion, used sparingly**                | A sliding nav indicator, rolling numbers, staggered stat cards, step transitions in the wizard, and accent colour transitions between workspaces. Everything respects `prefers-reduced-motion`. |
 
 ### Additional feature: multi-tenancy (workspaces)
 
@@ -222,7 +223,7 @@ Each change was also checked by hand in Chrome at desktop and 390px mobile width
 
 ## Time spent
 
-_TODO (author): approximately N hours._
+_approximately 24 hours._
 
 ## Next priorities
 
@@ -240,6 +241,7 @@ _TODO (author): approximately N hours._
 The separation follows how the app changes over time. UI changes most often, business rules change rarely, and storage changes almost never. Repositories, hooks, services and schemas are separate so each can change without touching the others. The backend lives inside Next.js route handlers to keep a single deployable unit for v1, but `server/` has no dependency on React, so it could become its own service. Tenancy and the publishing rule are built into the data model and request pipeline rather than handled in the UI, because those are the things that are expensive to retrofit.
 
 **Scale: what would change at millions of users?**
+
 - Postgres instead of SQLite, with read replicas and purchases partitioned by month.
 - Precomputed analytics rollups instead of aggregating on read, and events streamed to a columnar store.
 - Redis for hot counters and entitlement caching.
@@ -250,6 +252,7 @@ The separation follows how the app changes over time. UI changes most often, bus
 - On the frontend: route-level code splitting is already in place. Next would be virtualised tables for very large catalogues and cursor pagination.
 
 **Security: what to address before production?**
+
 - Auth hardening: email verification, password reset, session rotation and a "sign out everywhere" option, Redis-backed rate limiting (the current limiter is per-process), and CSRF tokens on mutations (`SameSite=Lax` cookies cover the common cases today).
 - Encryption of verification PII and documents at rest (KMS), with a retention policy and access auditing.
 - Content-type sniffing and malware scanning of uploads.
@@ -262,6 +265,7 @@ The separation follows how the app changes over time. UI changes most often, bus
 - An audit log of who published or deleted what.
 
 **Performance: how to keep the frontend fast as it grows?**
+
 - Static shells with streamed content (Cache Components).
 - TanStack Query caching with `keepPreviousData`, so data changes don't jank.
 - Server-side pagination and filtering.
@@ -272,6 +276,7 @@ The separation follows how the app changes over time. UI changes most often, bus
 
 **Reliability: what happens when a service fails?**
 Covered in detail in [ARCHITECTURE.md → Reliability](docs/ARCHITECTURE.md#reliability-what-happens-when-something-fails): upload interrupted, processing failure, CDN down, API down, and payment succeeding while authorisation fails. In the portal today:
+
 - every list, chart and page has a loading, empty and error state with **Retry**;
 - queries retry transient failures but not 4xx;
 - form input is never lost on errors;
@@ -280,6 +285,7 @@ Covered in detail in [ARCHITECTURE.md → Reliability](docs/ARCHITECTURE.md#reli
 You can trigger all of this live with **Demo & settings → API behaviour**.
 
 **Observability: what to monitor in production?**
+
 - **Product:** upload success rate and time to playable, publish-gate hits and verification conversion, the payment-to-entitlement gap.
 - **Playback:** startup time, rebuffering, errors by country.
 - **Engineering:** API p95 and error rate by route and tenant, queue depth and job failures, frontend Web Vitals and JS errors (Sentry).
