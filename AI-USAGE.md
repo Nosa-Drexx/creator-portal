@@ -46,6 +46,7 @@ Before any code was written, I gave the AI a detailed brief: what to build, how 
 | 16 | The Content table rendered every video with no pagination, unnoticeable with only 14 seeded. | **I spotted the missing pagination.** The Content table now paginates (10 per page, page kept in the URL, reset when filters change) using the same component as Purchases, and the demo catalogue grew to 26 videos so it shows by default. |
 | 17 | Draft rows without a video still showed a thumbnail and duration in the Content list, while the detail page said "No video uploaded yet". | **I caught the inconsistency.** The list now shows a generic "No video yet" tile when there's no video, and the API never returns video metadata (duration, file, size) without a video file. |
 | 18 | Seeded videos had made-up durations (e.g. 1:10:00) and sizes, but all play the same 8-second sample clip, so the list and the player disagreed. | **I caught the mismatch.** Seeded videos now report the real duration and size of the clip they play. Uploaded videos already store the duration read from the actual file. |
+| 19 | The sort dropdown rendered 32px tall next to a 40px search input on mobile. | **I caught the height mismatch.** The cause was the shadcn Select setting its height with an attribute variant that overrode every caller's height. The default is now an overridable class, so all selects honour their size: 40px toolbar controls on mobile, and the invite modal's role field matching the email input. |
 
 _(more entries are added as development continues)_
 
