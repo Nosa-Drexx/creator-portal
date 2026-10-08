@@ -53,7 +53,7 @@ export function S3Image({
               alt={alt}
               fill
               sizes={sizes}
-              unoptimized={signedUrl.startsWith("blob:") || signedUrl.startsWith("/api/media")}
+              unoptimized={signedUrl.startsWith("blob:") || signedUrl.startsWith("/api/")}
               onLoad={() => setLoaded(true)}
               onError={() => setFailed(true)}
               className={cn(
