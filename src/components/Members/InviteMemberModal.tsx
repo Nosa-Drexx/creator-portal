@@ -134,7 +134,7 @@ export function InviteMemberModal({ open, onOpenChange }: InviteMemberModalProps
             </span>
             <p className="text-[13.5px] leading-relaxed text-text-primary">
               We don&apos;t send emails in this demo, so share this link. Only{" "}
-              <span className="font-semibold">{created.email}</span> can accept it, and it expires in 14 days.
+              <span className="font-semibold break-all">{created.email}</span> can accept it, and it expires in 14 days.
             </p>
           </div>
           <CopyLink url={created.url} />
