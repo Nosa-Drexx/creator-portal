@@ -57,7 +57,8 @@ Log in as **Amara Lewis**, who owns two workspaces. Switch between them from the
 4. **Purchases.** Search by buyer, email, video or country. Filter by status, sort by date or amount, and paginate. All of it is server-side and kept in the URL, so filtered views can be shared.
 5. **Multi-tenancy.** Create a workspace from the switcher (**New workspace**), or open another creator's workspace (`/w/northbound-films`) and get a 404.
 6. **Mobile.** Narrow the window to about 390px. You'll see a bottom tab bar with a centre upload button, card layouts instead of tables, bottom-sheet dialogs, and sticky primary actions.
-7. **Collapsible sidebar.** Use the edge toggle or press **⌘B / Ctrl+B**. It's collapsed by default on tablets, and your choice is remembered.
+7. **Your profile.** Open the account menu (bottom of the sidebar, or top-right on mobile) and choose **Your profile** to change your name, password or profile photo (your email is your login, so it's read-only). Changing the password signs out your other sessions.
+8. **Collapsible sidebar.** Use the edge toggle or press **⌘B / Ctrl+B**. It's collapsed by default on tablets, and your choice is remembered.
 
 ### Demo-state controls
 
@@ -143,11 +144,12 @@ Not requested in the brief. I added it as the product improvement I chose to imp
 pnpm test
 ```
 
-There are 34 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
+There are 38 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
 
 - **The publishing rule at the endpoint:** unverified, pending and verified workspaces; create vs update; draft vs publish vs schedule.
 - **Tenant isolation:** foreign workspaces, foreign content IDs, purchase scoping, cross-tenant media signing, and per-user access.
 - **Workspace creation:** ownership, slug collisions, validation.
+- **Profile:** name updates (email can't be changed), password change signing out other sessions, avatar upload and serving, path-traversal and file-type rejection.
 - **Authentication:** 401 without a session, login, identical errors for unknown email vs wrong password, rate limiting, signup, and session invalidation on logout (a replayed cookie is rejected).
 - **Unit tests:** the publishing rule, content payload validation, and signed URL expiry and tampering.
 

@@ -9,6 +9,7 @@ export const routes = {
   purchases: (slug: string) => `${ws(slug)}/purchases`,
   verification: (slug: string) => `${ws(slug)}/verification`,
   settings: (slug: string) => `${ws(slug)}/settings`,
+  profile: (slug: string) => `${ws(slug)}/profile`,
 }
 
 /** Swaps the workspace segment so switching keeps you on the same section */

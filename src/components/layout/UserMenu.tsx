@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Logout01Icon, Settings02Icon } from "@hugeicons/core-free-icons"
+import { Logout01Icon, Settings02Icon, UserIcon } from "@hugeicons/core-free-icons"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,11 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
+import { UserAvatar } from "@/components/shared/UserAvatar"
 import { routes } from "@/constants/routes"
 import { useLogOut } from "@/hooks/mutations/use-auth-mutations"
 import { useSession } from "@/hooks/queries/use-session"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
-import { initials } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 interface UserMenuProps {
@@ -43,9 +43,7 @@ export function UserMenu({ detailed, align = "start", className }: UserMenuProps
           className,
         )}
       >
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-ink-900 text-[11px] font-bold text-ink-0 dark:bg-ink-100 dark:text-ink-900">
-          {initials(user.name)}
-        </span>
+        <UserAvatar name={user.name} avatarUrl={user.avatarUrl} />
         {detailed && (
           <span className="flex min-w-0 flex-1 flex-col collapsed:hidden">
             <span className="truncate text-[13px] font-semibold text-text-primary">{user.name}</span>
@@ -59,6 +57,14 @@ export function UserMenu({ detailed, align = "start", className }: UserMenuProps
           <span className="truncate text-xs font-normal text-text-tertiary">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {slug && (
+          <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
+            <Link href={routes.profile(slug)}>
+              <HugeiconsIcon icon={UserIcon} size={16} />
+              Your profile
+            </Link>
+          </DropdownMenuItem>
+        )}
         {slug && (
           <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
             <Link href={routes.settings(slug)}>
