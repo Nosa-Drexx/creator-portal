@@ -2,6 +2,8 @@
 
 How CreatorHub would handle **Creator upload → Processing → Storage → Delivery → Playback** in production. The portal in this repo already uses the same contracts locally: signed upload URLs, signed playback URLs, range requests and workspace-scoped keys. Moving to production swaps the storage backend; the client code stays the same.
 
+> **What the live demo actually runs on:** uploads are stored in a private **Vercel Blob** store, not S3. Running S3 and CloudFront for a demo would mean AWS billing for no real traffic, so the deployment uses the Blob store that comes with the Vercel project. It follows the same contract described here: a presigned PUT straight from the browser, a confirm step that checks the stored size, and short-lived presigned GETs for playback. Local development uses disk. The S3 (or R2) and CloudFront design below remains the plan for production scale.
+
 > The guiding principle: **spend money in proportion to demand.** A video with 5 views and a video with 500,000 views should not cost the same to process, store or deliver.
 
 ---
@@ -101,7 +103,7 @@ Other cost rules:
 
 Keys are namespaced by tenant (`{workspaceId}/{videoId}/…`), so tenant isolation also holds at the storage layer. This repo already does it (`ws_…/video/<uuid>.mp4`).
 
-**Vendor choice:** Cloudflare R2 has **no egress fees**, which matters more than anything else at this scale (see costs). S3 plus CloudFront is the safer default if the rest of the stack is on AWS. The design works with either.
+**Vendor choice:** Cloudflare R2 has **no egress fees**, which matters more than anything else at this scale (see costs). S3 plus CloudFront is the safer default if the rest of the stack is on AWS. The design works with either. The current demo uses Vercel Blob purely to avoid AWS costs; swapping it for S3 or R2 only changes the server's storage driver.
 
 ## D. Streaming and content delivery
 
