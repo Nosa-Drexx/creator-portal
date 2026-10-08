@@ -1,6 +1,8 @@
 import type { Database } from "../client"
 import * as schema from "../schema"
+import { hashPassword } from "@/server/auth/password"
 import {
+  DEMO_PASSWORD,
   DEMO_USER,
   FOREIGN_CONTENT,
   OTHER_USER,
@@ -96,6 +98,7 @@ async function seedWorkspaceContent(
 }
 
 export async function clearDatabase(db: Database) {
+  await db.delete(schema.sessions)
   await db.delete(schema.purchases)
   await db.delete(schema.uploads)
   await db.delete(schema.content)
@@ -108,7 +111,8 @@ export async function clearDatabase(db: Database) {
 export async function seedDatabase(db: Database, now = new Date()) {
   await clearDatabase(db)
 
-  await db.insert(schema.users).values([DEMO_USER, OTHER_USER])
+  const passwordHash = await hashPassword(DEMO_PASSWORD)
+  await db.insert(schema.users).values([DEMO_USER, OTHER_USER].map((u) => ({ ...u, passwordHash })))
   await db.insert(schema.workspaces).values(Object.values(WORKSPACES).map((w) => ({ ...w })))
   await db.insert(schema.memberships).values([
     { id: "mem_amara_studio", workspaceId: WORKSPACES.studio.id, userId: DEMO_USER.id, role: "owner" },

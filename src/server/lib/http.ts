@@ -1,6 +1,7 @@
 import "server-only"
 
 import { cookies } from "next/headers"
+import { connection } from "next/server"
 import type { NextRequest } from "next/server"
 import { z, ZodError, type ZodType } from "zod"
 import { EErrorCode } from "@/enums/errors"
@@ -50,6 +51,8 @@ type Handler<C> = (req: NextRequest, ctx: C) => Promise<Response>
 
 export function handle<C>(handler: Handler<C>, options: { faults?: boolean } = {}): Handler<C> {
   return async (req, ctx) => {
+    // API routes are always request-time; never prerender them at build
+    await connection()
     try {
       await ensureDatabase()
       if (options.faults !== false) await applyDemoFaults()

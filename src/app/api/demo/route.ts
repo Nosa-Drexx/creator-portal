@@ -6,7 +6,12 @@ import { DEMO_COOKIES, EDemoFault } from "@/constants/demo"
 import { EVerificationStatus } from "@/enums/verification"
 import { resetDatabase } from "@/server/db/setup"
 import { env } from "@/server/lib/env"
+import { eq } from "drizzle-orm"
+import { createSession } from "@/server/auth/sessions"
+import { db } from "@/server/db/client"
+import { users } from "@/server/db/schema"
 import { handle, ok, parseJson } from "@/server/lib/http"
+import { requireUser } from "@/server/lib/session"
 import { requireTenant } from "@/server/services/tenant"
 import { setVerificationStatus } from "@/server/services/verification"
 
@@ -31,13 +36,18 @@ export const GET = handle(
 /** Demo-state controls for reviewers; would not exist in production */
 export const POST = handle(
   async (req) => {
+    const user = await requireUser()
     const body = await parseJson(req, schema)
     const jar = await cookies()
 
     if (body.action === "reset") {
       await rm(path.resolve(env.UPLOAD_DIR), { recursive: true, force: true })
       jar.delete(DEMO_COOKIES.fault)
-      return ok(await resetDatabase())
+      const result = await resetDatabase()
+      // Reseeding clears sessions; keep a seeded reviewer signed in
+      const seeded = await db.query.users.findFirst({ where: eq(users.email, user.email) })
+      if (seeded) await createSession(seeded.id, req.headers.get("user-agent"))
+      return ok({ ...result, signedOut: !seeded })
     }
 
     if (body.action === "fault") {

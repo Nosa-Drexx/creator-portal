@@ -36,6 +36,7 @@ Before any code was written, I gave the AI a detailed brief: what to build, how 
 | 6 | Built multi-tenancy with a workspace switcher, but workspaces could only come from seed data. | **I spotted the gap:** a multi-tenant product needs a way to create a tenant. Added a "New workspace" flow (endpoint and UI). |
 | 7 | Sidebar had fixed widths per breakpoint. | **I asked for a collapsible sidebar**, mainly for tablets. Added a collapse toggle (⌘B) that is remembered, and collapsed by default on tablet widths. |
 | 8 | Built the theme toggle as an icon button that cross-faded sun and moon. | **I asked for a real switch** (shadcn `Switch`) so it reads and behaves like a toggle. The thumb now slides and carries the icon, and the theme is applied once the slide finishes. |
+| 9 | Authentication was simulated: every request acted as a seeded demo user, because the brief didn't require production auth. | **I asked for real login.** A product with workspace members needs real accounts. Added sign up, log in and log out, hashed passwords, server-side sessions, a route guard, onboarding, and one-click demo accounts so reviewers can still get in instantly. |
 
 _(more entries are added as development continues)_
 
@@ -53,10 +54,14 @@ These are cases where the AI's first attempt was wrong, and testing (not trust) 
 | Compared month-to-date revenue with _all_ of last month, which showed a misleading −79%.                                                            | Reviewing the numbers in the UI.                                                             | Compare against the same number of days last month.                                              |
 | A pending purchase showed a struck-through amount.                                                                                                  | Visual review.                                                                               | Strike-through only for refunded or failed purchases.                                            |
 | Three components called `setState` inside effects.                                                                                                  | `eslint` (react-hooks rules).                                                                | `useSyncExternalStore` for media queries, and an imperative handle for "use frame as thumbnail". |
+| A test for URL tampering swapped the signature's first character for `x`, which is a no-op when the signature already starts with `x` (about 1 run in 64). | Ran the suite repeatedly; it failed intermittently. | The test now always changes the character. |
+| In dev, the cached database client kept a pre-migration schema, so login read users without a password hash. | A Chrome login failed even though the API logic passed its tests. Debugged with `curl` and the dev server log. | Cache only the raw connection, and rebuild the ORM wrapper on hot reload. |
+| Per-route module copies in dev each ran the "seed if empty" step, so two requests raced to seed. | Duplicate-insert errors in the server log. | The setup promise is shared on `globalThis`. |
+| The first auth design would have looped between `/login` and `/` when a session cookie was stale. | Code review of the proxy and 401 handling before testing. | The API clears an invalid session cookie when it returns 401. |
 
 ## How I verified AI-generated code
 
-- **Automated:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (23 tests, including endpoint tests that call the real route handlers against a throwaway SQLite database) and `pnpm build`.
+- **Automated:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (34 tests, including endpoint tests that call the real route handlers against a throwaway SQLite database) and `pnpm build`.
 - **API by hand:** `curl` checks of the publishing rule (403 `VERIFICATION_REQUIRED`), tenant isolation (404 across workspaces), signed upload replay and tampering, and HTTP range requests for video seeking.
 - **Browser:** end-to-end walkthroughs in Chrome of every flow (dashboard, upload with real progress, frame-to-thumbnail, publish gate, verification, destructive confirmations) at desktop and at a 390px mobile viewport, in light and dark themes.
 - **Review:** I read every diff myself before committing.

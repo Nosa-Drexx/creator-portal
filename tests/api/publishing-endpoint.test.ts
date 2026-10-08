@@ -6,7 +6,7 @@ import { EErrorCode } from "@/enums/errors"
 import { EVerificationStatus } from "@/enums/verification"
 import { resetDatabase } from "@/server/db/setup"
 import { setVerificationStatus } from "@/server/services/verification"
-import { ctx, json, req } from "../support/request"
+import { ctx, json, req, signInAs } from "../support/request"
 
 const UNVERIFIED = "wild-frames"
 const payload = (status: EContentStatus) => ({
@@ -25,6 +25,7 @@ const create = (slug: string, status: EContentStatus) =>
 describe("POST/PUT content enforces the publishing rule", () => {
   beforeEach(async () => {
     await resetDatabase()
+    await signInAs("usr_demo_amara")
   })
 
   it("rejects publishing from an unverified workspace with 403", async () => {
