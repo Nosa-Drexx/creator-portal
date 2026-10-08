@@ -35,6 +35,7 @@ Before any code was written, I gave the AI a detailed brief: what to build, how 
 | 5 | Planned to hand-build the dashboard charts. | I pointed it to **existing, trusted charting packages** (Recharts, wrapped in reusable chart components), following industry-standard practice for building charts and taking advantage of the accessibility, polish and customisability those packages offer. |
 | 6 | Built multi-tenancy with a workspace switcher, but workspaces could only come from seed data. | **I spotted the gap:** a multi-tenant product needs a way to create a tenant. Added a "New workspace" flow (endpoint and UI). |
 | 7 | Sidebar had fixed widths per breakpoint. | **I asked for a collapsible sidebar**, mainly for tablets. Added a collapse toggle (⌘B) that is remembered, and collapsed by default on tablet widths. |
+| 8 | Built the theme toggle as an icon button that cross-faded sun and moon. | **I asked for a real switch** (shadcn `Switch`) so it reads and behaves like a toggle. The thumb now slides and carries the icon, and the theme is applied once the slide finishes. |
 
 _(more entries are added as development continues)_
 
