@@ -25,7 +25,8 @@ import type { Content } from "@/types/content"
 import { buildContentColumns } from "./content-columns"
 import { ContentMobileList } from "./ContentMobileList"
 import { DeleteContentModal } from "./DeleteContentModal"
-import { useContentFilters, type ContentSortKey } from "./use-content-filters"
+import { CONTENT_PAGE_SIZE, useContentFilters, type ContentSortKey } from "./use-content-filters"
+import { CustomPagination } from "@/components/shared/CustomPagination"
 
 const MOBILE_SORTS: { value: ContentSortKey; label: string }[] = [
   { value: "updated", label: "Recently edited" },
@@ -39,7 +40,13 @@ export function ContentListPage() {
   const router = useRouter()
   const isMobile = useIsMobile()
   const { data, isPending, error, refetch, isRefetching } = useContentList()
-  const { filters, setFilters, visible, counts, sort, hasActiveFilters, clear } = useContentFilters(data)
+  const { filters, setFilters, visible, pageItems, page, totalPages, setPage, counts, sort, hasActiveFilters, clear } =
+    useContentFilters(data)
+
+  const changePage = (next: number) => {
+    setPage(next)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
   const [toDelete, setToDelete] = useState<Content | null>(null)
   const { can } = usePermissions()
   const columns = buildContentColumns(setToDelete, can(EAction.View, EModule.Analytics))
@@ -124,15 +131,26 @@ export function ContentListPage() {
             />
           )
         ) : isMobile ? (
-          <ContentMobileList items={visible} onDelete={setToDelete} />
+          <ContentMobileList items={pageItems} onDelete={setToDelete} />
         ) : (
           <DataTable
             columns={columns}
-            data={visible}
+            data={pageItems}
             getRowId={(row) => row.id}
             sort={sort}
             onSortChange={(next) => setFilters({ sort: next.key as ContentSortKey, order: next.direction })}
             onRowClick={(row) => router.push(routes.contentDetail(slug, row.id))}
+          />
+        )}
+
+        {visible.length > 0 && (
+          <CustomPagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={visible.length}
+            pageSize={CONTENT_PAGE_SIZE}
+            onPageChange={changePage}
+            className="border-t border-stroke px-4 py-3 sm:px-5"
           />
         )}
       </section>

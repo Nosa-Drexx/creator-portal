@@ -43,6 +43,7 @@ Before any code was written, I gave the AI a detailed brief: what to build, how 
 | 13 | Put Log out inside the account menu, behind a row that didn't look clickable. | **I couldn't find how to log out**, which flagged a discoverability problem. The account row now shows a menu chevron, and **Demo & settings** has an Account card with a visible Log out button. |
 | 14 | The app had no brand identity: a default favicon and no social metadata. | **I added branding and SEO as a feature.** The AI designed the app icon (an SVG source rendered to PNG), I generated the favicon set from it, then the AI produced the Open Graph banner and wired the site metadata (title template, description, icons, Open Graph and Twitter cards, `metadataBase`) following the standard Next.js metadata conventions. |
 | 15 | The login page scrolled as a whole on desktop, dragging the brand panel along once more demo accounts were added. | **I caught the layout bug.** On large screens the page is now exactly one viewport: the brand panel is fixed and only the form column scrolls. The demo accounts became a compact two-column grid, so the form fits without scrolling. |
+| 16 | The Content table rendered every video with no pagination, unnoticeable with only 14 seeded. | **I spotted the missing pagination.** The Content table now paginates (10 per page, page kept in the URL, reset when filters change) using the same component as Purchases, and the demo catalogue grew to 26 videos so it shows by default. |
 
 _(more entries are added as development continues)_
 
