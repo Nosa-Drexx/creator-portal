@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Logout01Icon, Settings02Icon, UserGroupIcon, UserIcon } from "@hugeicons/core-free-icons"
+import { Logout01Icon, Settings02Icon, UnfoldMoreIcon, UserGroupIcon, UserIcon } from "@hugeicons/core-free-icons"
 import { CanRead } from "@/components/shared/Permissions"
 import { EModule } from "@/constants/permissions"
 import {
@@ -47,10 +47,13 @@ export function UserMenu({ detailed, align = "start", className }: UserMenuProps
       >
         <UserAvatar name={user.name} avatarUrl={user.avatarUrl} />
         {detailed && (
-          <span className="flex min-w-0 flex-1 flex-col collapsed:hidden">
-            <span className="truncate text-[13px] font-semibold text-text-primary">{user.name}</span>
-            <span className="truncate text-xs text-text-tertiary">{user.email}</span>
-          </span>
+          <>
+            <span className="flex min-w-0 flex-1 flex-col collapsed:hidden">
+              <span className="truncate text-[13px] font-semibold text-text-primary">{user.name}</span>
+              <span className="truncate text-xs text-text-tertiary">{user.email}</span>
+            </span>
+            <HugeiconsIcon icon={UnfoldMoreIcon} size={15} className="shrink-0 text-text-tertiary collapsed:hidden" />
+          </>
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} side={detailed ? "top" : "bottom"} className="w-56 rounded-xl p-1.5">
