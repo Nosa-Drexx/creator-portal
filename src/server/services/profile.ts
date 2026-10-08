@@ -1,7 +1,7 @@
 import "server-only"
 
 import { randomUUID } from "node:crypto"
-import { and, eq, ne } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { AVATAR_MAX_BYTES, AVATAR_TYPES, type PasswordChangeInput, type ProfileInput } from "@/lib/validation/profile"
 import { hashPassword, verifyPassword } from "@/server/auth/password"
 import { createSession } from "@/server/auth/sessions"
@@ -14,13 +14,9 @@ import { writeObject } from "@/server/storage/local"
 const EXTENSIONS: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }
 
 export async function updateProfile(user: UserRow, input: ProfileInput) {
-  if (input.email !== user.email) {
-    const taken = await db.query.users.findFirst({ where: and(eq(users.email, input.email), ne(users.id, user.id)) })
-    if (taken) throw Errors.conflict("That email is already used by another account")
-  }
   const [row] = await db
     .update(users)
-    .set({ name: input.name, email: input.email, updatedAt: new Date() })
+    .set({ name: input.name, updatedAt: new Date() })
     .where(eq(users.id, user.id))
     .returning()
   return row

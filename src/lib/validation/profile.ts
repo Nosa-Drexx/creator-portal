@@ -1,9 +1,9 @@
 import { z } from "zod"
 import { signupSchema } from "./auth"
 
+/** Email is the login identifier, so it can't be changed from the profile */
 export const profileSchema = z.object({
   name: signupSchema.shape.name,
-  email: signupSchema.shape.email,
 })
 
 export const passwordChangeSchema = z

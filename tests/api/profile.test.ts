@@ -20,15 +20,10 @@ describe("profile", () => {
     await signInAs("usr_demo_amara")
   })
 
-  it("updates name and email", async () => {
-    const res = await updateMe(req("/api/me", { method: "PATCH", body: { name: "Amara L.", email: "amara.l@example.com" } }), ctx({}))
+  it("updates the name but never the email", async () => {
+    const res = await updateMe(req("/api/me", { method: "PATCH", body: { name: "Amara L.", email: "hijack@example.com" } }), ctx({}))
     expect(res.status).toBe(200)
-    expect((await json(await session())).data.user).toMatchObject({ name: "Amara L.", email: "amara.l@example.com" })
-  })
-
-  it("refuses an email that belongs to someone else", async () => {
-    const res = await updateMe(req("/api/me", { method: "PATCH", body: { name: "Amara", email: "theo@creatorhub.dev" } }), ctx({}))
-    expect(res.status).toBe(409)
+    expect((await json(await session())).data.user).toMatchObject({ name: "Amara L.", email: "amara@creatorhub.dev" })
   })
 
   it("requires the current password and signs out other sessions on change", async () => {

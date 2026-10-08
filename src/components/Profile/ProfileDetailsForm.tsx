@@ -15,17 +15,17 @@ export function ProfileDetailsForm({ user }: { user: User }) {
   const update = useUpdateProfile()
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: user.name, email: user.email },
+    defaultValues: { name: user.name },
   })
   const { errors, isDirty } = form.formState
 
   useEffect(() => {
-    form.reset({ name: user.name, email: user.email })
-  }, [user.name, user.email, form])
+    form.reset({ name: user.name })
+  }, [user.name, form])
 
   const onSubmit = form.handleSubmit((values) =>
     update.mutate(values, {
-      onError: (error) => form.setError("email", { message: getApiError(error)?.message ?? "Couldn't save changes" }),
+      onError: (error) => form.setError("name", { message: getApiError(error)?.message ?? "Couldn't save changes" }),
     }),
   )
 
@@ -35,8 +35,8 @@ export function ProfileDetailsForm({ user }: { user: User }) {
         <Field label="Full name" htmlFor="profile-name" error={errors.name?.message}>
           <Input id="profile-name" autoComplete="name" className="h-11" {...form.register("name")} />
         </Field>
-        <Field label="Email" htmlFor="profile-email" error={errors.email?.message}>
-          <Input id="profile-email" type="email" autoComplete="email" className="h-11" {...form.register("email")} />
+        <Field label="Email" htmlFor="profile-email" hint="Your email is your login and can't be changed.">
+          <Input id="profile-email" type="email" value={user.email} disabled readOnly className="h-11" />
         </Field>
       </div>
       <div className="flex justify-end gap-2">
