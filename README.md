@@ -141,6 +141,14 @@ Permissions are `action:module` strings (for example `publish:content` or `view:
 - **Two separate publish locks.** "Your role can't publish" is distinct from "verify your identity". An Editor in a verified workspace gets the first message, not a misleading verification prompt.
 - **Invitations are bound to an email address.** They expire after 14 days, and the link token is stored hashed. There's no email sending in the demo: the inviter copies a link, and invitees also see pending invites in-app.
 
+### Additional feature: branding and SEO
+
+- **Identity.** The app icon (`public/images/brand/app-icon.svg`, rendered to a 1024px PNG) is the source of the favicon set in `public/creatorhub_favicon_set/`, together with a completed `site.webmanifest` (name, colours and icon paths). `src/app/favicon.ico` is kept identical to the set's.
+- **Social previews.** `public/images/creatorhub-og-banner.jpg` is 1200×630 (1.91:1, the size every major platform expects) at about 116 KB, comfortably under WhatsApp's roughly 300 KB limit. Key content sits inside the centre safe zone, so platform crops don't cut the logo or headline.
+- **Metadata** lives in `src/app/layout.tsx`, with constants in `src/constants/site.ts`: `metadataBase` from `NEXT_PUBLIC_APP_URL`, a title template, description, keywords, icons, manifest, Open Graph and Twitter `summary_large_image` cards with the image's size, type and alt text.
+- **Crawling.** `robots.ts` and `sitemap.ts` expose only the public pages (`/login`, `/signup`). Workspaces, onboarding and invite pages are `noindex`. The proxy lets crawlers fetch the image, icons, manifest, robots and sitemap without signing in.
+- **To deploy:** set `NEXT_PUBLIC_APP_URL` to the live origin so preview URLs are absolute and resolvable.
+
 ### Key technical choices
 
 | Choice | Why |

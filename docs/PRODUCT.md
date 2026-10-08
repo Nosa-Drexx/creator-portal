@@ -64,3 +64,10 @@ Three improvements I'd make if I owned CreatorHub's creator experience. The firs
 - **Buyers** get a fairer purchase decision, which also means fewer refunds.
 
 **Why medium priority.** Previews need the processing pipeline to output a separate clip rendition, and price guidance needs enough data per workspace to be honest. It should follow the upload work in #2.
+
+---
+
+## Also added: brand identity and SEO
+
+An app icon and favicon set, a web app manifest, a 1200×630 Open Graph banner optimised for every major social platform, and complete site metadata (Open Graph, Twitter cards, robots and sitemap, with private pages set to `noindex`). Shared links now look professional, and the public pages can be found by search engines.
+
