@@ -1,6 +1,6 @@
 "use client"
 
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsCompact } from "@/hooks/use-mobile"
 import { CustomPagination } from "@/components/shared/CustomPagination"
 import { DataTable, type DataTableSort } from "@/components/shared/DataTable"
 import { ErrorState } from "@/components/shared/ErrorState"
@@ -16,7 +16,7 @@ import { PurchasesToolbar } from "./PurchasesToolbar"
 import { PAGE_SIZE, usePurchaseFilters } from "./use-purchase-filters"
 
 export function PurchasesPage() {
-  const isMobile = useIsMobile()
+  const isCompact = useIsCompact()
   const { filters, params, update, setPage, clear, hasActiveFilters } = usePurchaseFilters()
   const { data, isPending, isPlaceholderData, error, refetch, isRefetching } = usePurchases(params)
 
@@ -46,7 +46,7 @@ export function PurchasesPage() {
           <ErrorState error={error} title="We couldn't load purchases" onRetry={refetch} isRetrying={isRefetching} />
         ) : data.data.length === 0 ? (
           <PurchasesEmpty filtered={hasActiveFilters} onClear={clear} />
-        ) : isMobile ? (
+        ) : isCompact ? (
           <PurchaseMobileList purchases={data.data} isFetching={isPlaceholderData} />
         ) : (
           <DataTable

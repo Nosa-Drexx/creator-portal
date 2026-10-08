@@ -29,12 +29,12 @@ export function PurchasesToolbar({ filters, update }: Pick<Filters, "filters" | 
   const setStatus = (value: StatusValue) => update({ status: value === "all" ? null : value })
 
   return (
-    <div className="flex flex-col gap-2.5 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
       <SearchInput
         value={filters.search}
         onChange={(search) => update({ search: search || null })}
         placeholder="Search buyer, email, video or country"
-        className="md:max-w-xs md:flex-1"
+        className="lg:max-w-xs lg:flex-1"
       />
 
       <SegmentedControl
@@ -42,10 +42,10 @@ export function PurchasesToolbar({ filters, update }: Pick<Filters, "filters" | 
         value={status}
         onChange={setStatus}
         options={STATUS_OPTIONS}
-        className="max-md:hidden"
+        className="max-lg:hidden"
       />
 
-      <div className="grid grid-cols-2 gap-2 md:hidden">
+      <div className="grid grid-cols-2 gap-2 lg:hidden">
         <DropdownSelect
           aria-label="Filter by status"
           leadingIcon={FilterHorizontalIcon}

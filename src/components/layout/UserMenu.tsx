@@ -63,7 +63,7 @@ export function UserMenu({ detailed, align = "start", className }: UserMenuProps
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {slug && (
-          <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
+          <DropdownMenuItem asChild className="gap-2.5 rounded-lg max-md:py-2.5">
             <Link href={routes.profile(slug)}>
               <HugeiconsIcon icon={UserIcon} size={16} />
               Your profile
@@ -72,7 +72,7 @@ export function UserMenu({ detailed, align = "start", className }: UserMenuProps
         )}
         {slug && (
           <CanRead module={EModule.Members}>
-            <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
+            <DropdownMenuItem asChild className="gap-2.5 rounded-lg max-md:py-2.5">
               <Link href={routes.members(slug)}>
                 <HugeiconsIcon icon={UserGroupIcon} size={16} />
                 Team
@@ -81,7 +81,7 @@ export function UserMenu({ detailed, align = "start", className }: UserMenuProps
           </CanRead>
         )}
         {slug && (
-          <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
+          <DropdownMenuItem asChild className="gap-2.5 rounded-lg max-md:py-2.5">
             <Link href={routes.settings(slug)}>
               <HugeiconsIcon icon={Settings02Icon} size={16} />
               Demo &amp; settings
@@ -90,7 +90,7 @@ export function UserMenu({ detailed, align = "start", className }: UserMenuProps
         )}
         <DropdownMenuItem
           variant="destructive"
-          className="gap-2.5 rounded-lg"
+          className="gap-2.5 rounded-lg max-md:py-2.5"
           disabled={logout.isPending}
           onSelect={() => logout.mutate()}
         >

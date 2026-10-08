@@ -4,8 +4,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 export function PurchaseListSkeleton() {
   return (
     <>
-      <TableSkeleton columns={6} rows={10} className="max-md:hidden" />
-      <div className="flex flex-col md:hidden" aria-busy>
+      <TableSkeleton columns={6} rows={10} className="max-lg:hidden" />
+      <div className="flex flex-col lg:hidden" aria-busy>
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="flex gap-3 border-b border-stroke/70 px-4 py-3.5 last:border-0">
             <Skeleton className="size-9 shrink-0 rounded-full" />
@@ -31,9 +31,9 @@ export function PurchasesSkeleton() {
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-4 w-64" />
       </div>
-      <div className="flex flex-col gap-2.5 md:flex-row md:justify-between">
-        <Skeleton className="h-10 w-full rounded-[10px] md:h-9 md:max-w-xs" />
-        <Skeleton className="h-10 w-full rounded-[11px] md:h-9 md:w-96" />
+      <div className="flex flex-col gap-2.5 lg:flex-row lg:justify-between">
+        <Skeleton className="h-10 w-full rounded-[10px] lg:h-9 lg:max-w-xs" />
+        <Skeleton className="h-10 w-full rounded-[11px] lg:h-9 lg:w-96" />
       </div>
       <div className="overflow-hidden rounded-2xl bg-surface shadow-card">
         <PurchaseListSkeleton />

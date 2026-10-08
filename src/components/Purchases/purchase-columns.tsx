@@ -4,7 +4,7 @@ import type { DataTableColumn } from "@/components/shared/DataTable"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { PURCHASE_STATUS } from "@/constants/status"
 import { EPurchaseSort, EPurchaseStatus } from "@/enums/purchases"
-import { countryFlag, countryName, formatPrice, formatDateTime } from "@/lib/format"
+import { countryFlag, countryName, formatDate, formatPrice } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { Purchase } from "@/types/purchases"
 
@@ -19,12 +19,13 @@ export function DeletedTag() {
   )
 }
 
+// Truncated text still sizes a table cell to its full width, so small laptops get fixed widths
 export const purchaseColumns: DataTableColumn<Purchase>[] = [
   {
     id: "buyer",
     header: "Buyer",
     cell: ({ row }) => (
-      <div className="flex min-w-[180px] items-center gap-3">
+      <div className="flex w-[160px] items-center gap-3 xl:w-auto xl:min-w-[180px]">
         <BuyerAvatar name={row.original.buyerName} />
         <div className="flex min-w-0 flex-col">
           <span className="truncate font-semibold text-text-primary">{row.original.buyerName}</span>
@@ -39,8 +40,13 @@ export const purchaseColumns: DataTableColumn<Purchase>[] = [
     cell: ({ row }) => {
       const { content } = row.original
       return (
-        <div className="flex max-w-[280px] min-w-[200px] items-center gap-2.5">
-          <ContentThumbnail src={content.thumbnailKey} title={content.title} className="w-14 rounded-md" sizes="56px" />
+        <div className="flex w-[140px] items-center gap-2.5 xl:w-auto xl:max-w-[260px] xl:min-w-[180px]">
+          <ContentThumbnail
+            src={content.thumbnailKey}
+            title={content.title}
+            className="w-14 shrink-0 rounded-md max-xl:hidden"
+            sizes="56px"
+          />
           <span className={cn("truncate text-[13px] font-medium", content.deleted ? "text-text-tertiary" : "text-text-primary")}>
             {content.title}
           </span>
@@ -67,12 +73,14 @@ export const purchaseColumns: DataTableColumn<Purchase>[] = [
   {
     id: "country",
     header: "Country",
+    // Dropped on small laptops; the full name only fits wide screens
+    meta: { headerClassName: "max-xl:hidden", cellClassName: "max-xl:hidden" },
     cell: ({ row }) => (
-      <span className="flex items-center gap-2 whitespace-nowrap text-text-secondary">
+      <span className="flex items-center gap-2 whitespace-nowrap text-text-secondary" title={countryName(row.original.country)}>
         <span className="text-base leading-none" aria-hidden>
           {countryFlag(row.original.country)}
         </span>
-        {countryName(row.original.country)}
+        <span className="max-2xl:sr-only">{countryName(row.original.country)}</span>
       </span>
     ),
   },
@@ -89,7 +97,10 @@ export const purchaseColumns: DataTableColumn<Purchase>[] = [
     header: "Date",
     meta: { sortKey: EPurchaseSort.Date, align: "right" },
     cell: ({ row }) => (
-      <span className="whitespace-nowrap text-text-secondary tabular">{formatDateTime(row.original.createdAt)}</span>
+      <span className="flex flex-col whitespace-nowrap text-text-secondary tabular">
+        {formatDate(row.original.createdAt)}
+        <span className="text-xs text-text-tertiary">{formatDate(row.original.createdAt, "HH:mm")}</span>
+      </span>
     ),
   },
 ]
