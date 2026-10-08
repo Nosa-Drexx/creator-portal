@@ -1,6 +1,7 @@
 import "server-only"
 
 import { and, desc, eq, inArray, isNull, like, lte, sql } from "drizzle-orm"
+import { QueryBuilder } from "drizzle-orm/sqlite-core"
 import { EContentStatus } from "@/enums/content"
 import { EPurchaseStatus } from "@/enums/purchases"
 import { db } from "@/server/db/client"
@@ -13,7 +14,8 @@ import { assertPermission, hasPermission } from "./permissions"
 import { assertCanSetStatus, canPublish, requiresVerification } from "./publishing"
 import type { TenantContext } from "./tenant"
 
-const stats = db
+// Built without the db so importing this module never opens a connection
+const stats = new QueryBuilder()
   .select({
     contentId: purchases.contentId,
     purchases: sql<number>`count(*)`.as("purchase_count"),

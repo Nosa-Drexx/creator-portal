@@ -4,7 +4,7 @@ import path from "node:path"
 import { count, eq } from "drizzle-orm"
 import { migrate } from "drizzle-orm/libsql/migrator"
 import { env } from "@/server/lib/env"
-import { db, libsql } from "./client"
+import { getDb, getLibsql } from "./client"
 import { users, workspaces } from "./schema"
 import { seedDatabase } from "./seed"
 
@@ -15,6 +15,7 @@ const globalForSetup = globalThis as unknown as { dbReady?: Promise<void> | null
 
 /** Pre-release schemas (before roles) can't be migrated in place; rebuild them, since all data is demo data */
 async function dropPreReleaseSchema() {
+  const libsql = getLibsql()
   const columns = await libsql.execute("PRAGMA table_info(memberships)")
   const isLegacy = columns.rows.length > 0 && !columns.rows.some((c) => c.name === "role_id")
   if (!isLegacy) return
@@ -25,6 +26,7 @@ async function dropPreReleaseSchema() {
 }
 
 async function setup() {
+  const db = getDb()
   await dropPreReleaseSchema()
   await migrate(db, { migrationsFolder: MIGRATIONS_DIR })
   if (!env.AUTO_SEED) return
@@ -44,6 +46,7 @@ export function ensureDatabase() {
 }
 
 export async function resetDatabase() {
+  const db = getDb()
   await dropPreReleaseSchema()
   await migrate(db, { migrationsFolder: MIGRATIONS_DIR })
   return seedDatabase(db)
