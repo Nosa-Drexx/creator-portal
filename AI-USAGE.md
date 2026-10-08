@@ -39,6 +39,7 @@ Before any code was written, I gave the AI a detailed brief: what to build, how 
 | 9 | Authentication was simulated: every request acted as a seeded demo user, because the brief didn't require production auth. | **I asked for real login.** A product with workspace members needs real accounts. Added sign up, log in and log out, hashed passwords, server-side sessions, a route guard, onboarding, and one-click demo accounts so reviewers can still get in instantly. |
 | 10 | No way for users to manage their own account. | **I asked for profile management:** name, password and profile photo. I also had email made read-only, since it's the login identifier. Photos are cropped and resized in the browser, and changing the password signs out other devices. |
 | 11 | Workspace access was all-or-nothing (owners plus a simple editor rule). | **I asked for real roles and permissions**, built the way I build permission guards in production apps: `action:module` permissions, permission helpers, a `usePermissions` hook, `<CanX>` and `<RequirePermission>` guard components, permission-filtered navigation, member invitations and custom roles. I also required server-side enforcement so the UI guards are only UX. |
+| 12 | Allowed owners to grant ownership and only protected the *last* owner, and let people change their own role. | **I tightened the ownership rules:** the owner's role can never be changed (by themselves or by admins with member permissions), the owner can't be removed or leave, and nobody can change their own role. The AI made the Owner role non-assignable to keep "one fixed owner" consistent, enforced it in the API, mirrored it in the UI and added tests. |
 
 _(more entries are added as development continues)_
 
@@ -65,7 +66,7 @@ These are cases where the AI's first attempt was wrong, and testing (not trust) 
 
 ## How I verified AI-generated code
 
-- **Automated:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (50 tests, including endpoint tests that call the real route handlers against a throwaway SQLite database) and `pnpm build`.
+- **Automated:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (51 tests, including endpoint tests that call the real route handlers against a throwaway SQLite database) and `pnpm build`.
 - **API by hand:** `curl` checks of the publishing rule (403 `VERIFICATION_REQUIRED`), tenant isolation (404 across workspaces), signed upload replay and tampering, and HTTP range requests for video seeking.
 - **Browser:** end-to-end walkthroughs in Chrome of every flow (dashboard, upload with real progress, frame-to-thumbnail, publish gate, verification, destructive confirmations) at desktop and at a 390px mobile viewport, in light and dark themes.
 - **Review:** I read every diff myself before committing.

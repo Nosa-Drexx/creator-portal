@@ -128,8 +128,8 @@ Permissions are `action:module` strings (for example `publish:content` or `view:
 - **Roles belong to a workspace.** Each workspace gets four built-in roles (Owner, Admin, Editor, Analyst) and can define custom ones in the permission-matrix editor.
 - **The server is the authority.** Every service checks the permission it needs (`assertPermission`), and sales and performance numbers are left out of responses for roles without `view:analytics`. Protections:
   - You can't grant permissions you don't hold.
-  - Only owners can grant ownership.
-  - The last owner can't be removed or demoted.
+  - **The owner is fixed:** a workspace has one owner (its creator). Nobody, including the owner, can change the owner's role, remove the owner, or make someone else Owner. The owner can't leave.
+  - Nobody can change their own role.
   - A role that's in use can't be deleted.
 - **The frontend guards are UX, not security.** They live in `components/shared/Permissions`:
   - pure helpers (`canRead`, `canCreate`, `canPublish`…);
@@ -170,7 +170,7 @@ Not requested in the brief. I added it as the product improvement I chose to imp
 pnpm test
 ```
 
-There are 50 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
+There are 51 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
 
 - **The publishing rule at the endpoint:** unverified, pending and verified workspaces; create vs update; draft vs publish vs schedule.
 - **Tenant isolation:** foreign workspaces, foreign content IDs, purchase scoping, cross-tenant media signing, and per-user access.
@@ -180,7 +180,7 @@ There are 50 tests. The API tests call the **real route handlers** against a thr
   - what each built-in role can and can't do at the endpoint;
   - metrics hidden from roles without analytics;
   - escalation blocked;
-  - last-owner protection;
+  - the owner lock (role, removal and leaving) and no self role changes;
   - leaving a workspace;
   - custom role rules;
   - role changes applying on the next request.

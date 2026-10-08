@@ -10,10 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Field } from "@/components/shared/forms/Field"
 import { ResponsiveModal } from "@/components/shared/ResponsiveModal"
-import { ESystemRole, MANAGE_ALL } from "@/constants/permissions"
+import { ESystemRole } from "@/constants/permissions"
 import { useInviteMember } from "@/hooks/mutations/use-member-mutations"
 import { useRoles } from "@/hooks/queries/use-members"
-import { usePermissions } from "@/hooks/use-permissions"
 import { getApiErrorMessage } from "@/lib/axios"
 import { inviteSchema, type InviteInput } from "@/lib/validation/members"
 
@@ -55,7 +54,6 @@ function CopyLink({ url }: { url: string }) {
 
 export function InviteMemberModal({ open, onOpenChange }: InviteMemberModalProps) {
   const { data: roles = [] } = useRoles()
-  const { has } = usePermissions()
   const invite = useInviteMember()
   const [created, setCreated] = useState<{ email: string; url: string } | null>(null)
   const editorRoleId = roles.find((r) => r.systemKey === ESystemRole.Editor)?.id ?? ""
@@ -171,13 +169,10 @@ export function InviteMemberModal({ open, onOpenChange }: InviteMemberModalProps
                     <SelectValue placeholder="Choose a role" />
                   </SelectTrigger>
                   <SelectContent position="popper" className="rounded-xl">
-                    {roles.map((role) => (
-                      <SelectItem
-                        key={role.id}
-                        value={role.id}
-                        disabled={role.systemKey === ESystemRole.Owner && !has(MANAGE_ALL)}
-                        className="rounded-lg"
-                      >
+                    {roles
+                      .filter((role) => role.systemKey !== ESystemRole.Owner)
+                      .map((role) => (
+                      <SelectItem key={role.id} value={role.id} className="rounded-lg">
                         {role.name}
                       </SelectItem>
                     ))}

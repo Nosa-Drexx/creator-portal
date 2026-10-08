@@ -2,13 +2,13 @@ import "server-only"
 
 import { createHash, randomBytes } from "node:crypto"
 import { and, eq, gt } from "drizzle-orm"
-import { ESystemRole, MANAGE_ALL } from "@/constants/permissions"
+import { ESystemRole } from "@/constants/permissions"
 import { db } from "@/server/db/client"
 import { invitations, memberships, roles, users, workspaces, type UserRow } from "@/server/db/schema"
 import { Errors } from "@/server/lib/errors"
 import { newId } from "@/server/lib/ids"
 import type { CreatedInvitation, MyInvitation, WorkspaceInvitation } from "@/types/members"
-import { assertPermission, hasPermission } from "./permissions"
+import { assertPermission } from "./permissions"
 import type { TenantContext } from "./tenant"
 
 const INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000
@@ -44,9 +44,7 @@ export async function createInvitation(ctx: TenantContext, input: { email: strin
   assertPermission(ctx, "manage:members")
   const role = await db.query.roles.findFirst({ where: and(eq(roles.id, input.roleId), eq(roles.workspaceId, ctx.workspace.id)) })
   if (!role) throw Errors.badRequest("That role doesn't exist in this workspace")
-  if (role.systemKey === ESystemRole.Owner && !hasPermission(ctx.permissions, MANAGE_ALL)) {
-    throw Errors.forbidden("Only owners can invite another owner")
-  }
+  if (role.systemKey === ESystemRole.Owner) throw Errors.forbidden("A workspace has a single owner, so you can't invite someone as Owner")
 
   const [existingMember] = await db
     .select({ id: memberships.id })

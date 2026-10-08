@@ -2,7 +2,7 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { StatusBadge } from "@/components/shared/StatusBadge"
-import { EAction, EModule, ESystemRole, MANAGE_ALL } from "@/constants/permissions"
+import { EAction, EModule, ESystemRole } from "@/constants/permissions"
 import { useChangeMemberRole } from "@/hooks/mutations/use-member-mutations"
 import { usePermissions } from "@/hooks/use-permissions"
 import { cn } from "@/lib/utils"
@@ -16,11 +16,12 @@ interface RoleSelectProps {
 
 /** Inline role changer for managers; a plain badge for everyone else */
 export function RoleSelect({ member, roles, className }: RoleSelectProps) {
-  const { can, has } = usePermissions()
+  const { can } = usePermissions()
   const change = useChangeMemberRole()
   const isOwnerRole = member.role.systemKey === ESystemRole.Owner
-  const canGrantOwner = has(MANAGE_ALL)
-  const editable = can(EAction.Manage, EModule.Members) && (!isOwnerRole || canGrantOwner)
+  // The owner's role is fixed, and nobody edits their own role (mirrors the API)
+  const editable = can(EAction.Manage, EModule.Members) && !isOwnerRole && !member.isYou
+  const assignable = roles.filter((role) => role.systemKey !== ESystemRole.Owner)
 
   if (!editable) {
     return <StatusBadge tone={isOwnerRole ? "brand" : "neutral"} label={member.role.name} dot={false} className={className} />
@@ -43,13 +44,8 @@ export function RoleSelect({ member, roles, className }: RoleSelectProps) {
         <SelectValue />
       </SelectTrigger>
       <SelectContent position="popper" align="end" className="rounded-xl">
-        {roles.map((role) => (
-          <SelectItem
-            key={role.id}
-            value={role.id}
-            disabled={role.systemKey === ESystemRole.Owner && !canGrantOwner}
-            className="rounded-lg"
-          >
+        {assignable.map((role) => (
+          <SelectItem key={role.id} value={role.id} className="rounded-lg">
             {role.name}
           </SelectItem>
         ))}

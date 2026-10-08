@@ -72,11 +72,25 @@ describe("role-based permissions", () => {
     expect(escalate.status).toBe(403)
   })
 
-  it("protects the last owner", async () => {
+  it("locks the owner: no one can change their role, remove them, or make another owner", async () => {
+    const patch = (memberId: string, roleId: string) =>
+      changeRole(req("/x", { method: "PATCH", body: { roleId } }), ctx({ slug, memberId }))
+    const remove = (memberId: string) => removeMember(req("/x", { method: "DELETE" }), ctx({ slug, memberId }))
+
     await as("amara")
-    const demote = await changeRole(req("/x", { method: "PATCH", body: { roleId: "rol_studio_editor" } }), ctx({ slug, memberId: "mem_amara_studio" }))
-    expect(demote.status).toBe(409)
-    expect((await removeMember(req("/x", { method: "DELETE" }), ctx({ slug, memberId: "mem_amara_studio" }))).status).toBe(409)
+    expect((await patch("mem_amara_studio", "rol_studio_editor")).status).toBe(403)
+    expect((await remove("mem_amara_studio")).status).toBe(403)
+    expect((await patch("mem_priya_studio", "rol_studio_owner")).status).toBe(403)
+
+    await as("jordan")
+    expect((await patch("mem_amara_studio", "rol_studio_editor")).status).toBe(403)
+    expect((await remove("mem_amara_studio")).status).toBe(403)
+  })
+
+  it("nobody can change their own role", async () => {
+    await as("jordan")
+    const res = await changeRole(req("/x", { method: "PATCH", body: { roleId: "rol_studio_editor" } }), ctx({ slug, memberId: "mem_jordan_studio" }))
+    expect(res.status).toBe(403)
   })
 
   it("lets anyone leave, and members see the team list", async () => {
