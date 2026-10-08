@@ -2,7 +2,7 @@ import { BuyerAvatar } from "@/components/shared/BuyerAvatar"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { PURCHASE_STATUS } from "@/constants/status"
 import { EPurchaseStatus } from "@/enums/purchases"
-import { countryFlag, countryName, formatCurrency, formatRelativeDay } from "@/lib/format"
+import { countryFlag, countryName, formatPrice, formatRelativeDay } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { Purchase } from "@/types/purchases"
 import { DeletedTag, isVoided } from "./purchase-columns"
@@ -33,7 +33,7 @@ export function PurchaseMobileList({ purchases, isFetching }: PurchaseMobileList
                     isVoided(purchase.status) ? "text-text-tertiary line-through" : "text-text-primary",
                   )}
                 >
-                  {formatCurrency(purchase.amountCents)}
+                  {formatPrice(purchase.amountCents)}
                 </span>
               </div>
               <div className="flex min-w-0 items-center gap-1.5">

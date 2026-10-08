@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, asc, count, desc, eq, like, or } from "drizzle-orm"
+import { and, asc, count, desc, eq, inArray, like, or } from "drizzle-orm"
 import { EPurchaseSort, EPurchaseStatus } from "@/enums/purchases"
 import { db } from "@/server/db/client"
 import { content, purchases } from "@/server/db/schema"
@@ -16,12 +16,28 @@ export function maskEmail(email: string) {
   return `${local.slice(0, 2)}${"•".repeat(Math.max(local.length - 2, 3))}@${domain}`
 }
 
+let regions: { code: string; name: string }[] | null = null
+
+/** Countries are stored as ISO codes, so "canada" has to be matched by name */
+function countryCodesMatching(search: string) {
+  if (!regions) {
+    const names = new Intl.DisplayNames(["en"], { type: "region" })
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    regions = [...letters].flatMap((a) =>
+      [...letters].map((b) => ({ code: a + b, name: names.of(a + b) ?? "" })).filter((r) => r.name && r.name !== r.code),
+    )
+  }
+  const needle = search.trim().toLowerCase()
+  return needle.length < 2 ? [] : regions.filter((r) => r.name.toLowerCase().includes(needle)).map((r) => r.code)
+}
+
 export async function listPurchases(
   ctx: TenantContext,
   params: Required<Pick<PurchaseListParams, "sort" | "order" | "page" | "limit">> & PurchaseListParams,
 ): Promise<PaginatedResponse<Purchase>> {
   assertPermission(ctx, "view:purchases")
   const term = params.search ? `%${params.search}%` : null
+  const countryCodes = params.search ? countryCodesMatching(params.search) : []
   const where = and(
     eq(purchases.workspaceId, ctx.workspace.id),
     params.status ? eq(purchases.status, params.status) : undefined,
@@ -32,6 +48,7 @@ export async function listPurchases(
           like(purchases.buyerEmail, term),
           like(content.title, term),
           like(purchases.country, term),
+          countryCodes.length ? inArray(purchases.country, countryCodes) : undefined,
           like(purchases.id, term),
         )
       : undefined,

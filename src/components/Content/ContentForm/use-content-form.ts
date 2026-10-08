@@ -27,6 +27,13 @@ const SUCCESS_COPY: Record<EContentStatus, string> = {
   [EContentStatus.Scheduled]: "Your video is scheduled",
 }
 
+/** Media fields aren't focusable inputs, so bring whichever error comes first into view */
+function revealFirstError() {
+  requestAnimationFrame(() => {
+    document.querySelector('[aria-invalid="true"], [data-slot="field-error"], .text-danger')?.scrollIntoView({ behavior: "smooth", block: "center" })
+  })
+}
+
 export function useContentForm(defaults: ContentFormValues, existing?: Content) {
   const slug = useWorkspaceSlug()
   const router = useRouter()
@@ -62,7 +69,7 @@ export function useContentForm(defaults: ContentFormValues, existing?: Content) 
   const persist = async (values: ContentFormValues, status: EContentStatus, then?: (content: Content) => void) => {
     try {
       const saved = await save.mutateAsync(toPayload(values, status))
-      customToast("success", SUCCESS_COPY[status])
+      customToast("success", existing?.status === status ? "Changes saved" : SUCCESS_COPY[status])
       form.reset(values)
       if (then) then(saved)
       else router.push(routes.contentDetail(slug, saved.id))
@@ -86,7 +93,7 @@ export function useContentForm(defaults: ContentFormValues, existing?: Content) 
       return
     }
     return persist(values, values.status)
-  })
+  }, revealFirstError)
 
   const saveAsDraft = async (then?: (content: Content) => void) => {
     form.setValue("status", EContentStatus.Draft)

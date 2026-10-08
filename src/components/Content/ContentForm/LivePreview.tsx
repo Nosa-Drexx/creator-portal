@@ -6,9 +6,9 @@ import type { ContentFormValues } from "./schema"
 
 /** Buyer preview that updates as the creator types */
 export function LivePreview({ control }: { control: Control<ContentFormValues> }) {
-  const [title, price, thumbnailKey, durationSeconds, status] = useWatch({
+  const [title, price, thumbnailKey, durationSeconds, status, videoKey] = useWatch({
     control,
-    name: ["title", "price", "thumbnailKey", "durationSeconds", "status"],
+    name: ["title", "price", "thumbnailKey", "durationSeconds", "status", "videoKey"],
   })
   return (
     <BuyerPreviewCard
@@ -17,6 +17,7 @@ export function LivePreview({ control }: { control: Control<ContentFormValues> }
       thumbnailKey={thumbnailKey}
       durationSeconds={durationSeconds}
       status={status}
+      hasVideo={!!videoKey}
     />
   )
 }

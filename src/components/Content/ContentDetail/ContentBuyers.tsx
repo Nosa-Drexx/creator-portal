@@ -12,7 +12,7 @@ import { routes } from "@/constants/routes"
 import { PURCHASE_STATUS } from "@/constants/status"
 import { usePurchases } from "@/hooks/queries/use-purchases"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
-import { countryFlag, formatCurrency, formatTimeAgo } from "@/lib/format"
+import { countryFlag, formatPrice, formatTimeAgo } from "@/lib/format"
 
 export function ContentBuyers({ contentId, title }: { contentId: string; title: string }) {
   const slug = useWorkspaceSlug()
@@ -47,7 +47,7 @@ export function ContentBuyers({ contentId, title }: { contentId: string; title: 
                   <span className="text-[11.5px] text-text-tertiary">{formatTimeAgo(p.createdAt)}</span>
                 </div>
                 {p.status === "completed" ? (
-                  <span className="text-[13px] font-bold tabular">{formatCurrency(p.amountCents)}</span>
+                  <span className="text-[13px] font-bold tabular">{formatPrice(p.amountCents)}</span>
                 ) : (
                   <StatusBadge tone={status.tone} label={status.label} className="h-5 px-2 text-[10.5px]" />
                 )}

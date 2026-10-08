@@ -32,7 +32,7 @@ export function PurchasesPage() {
     ? "Every sale across your catalogue."
     : hasActiveFilters
       ? `${formatNumber(total)} matching ${total === 1 ? "purchase" : "purchases"}`
-      : `${formatNumber(total)} ${total === 1 ? "purchase" : "purchases"} across your catalogue`
+      : `${formatNumber(total)} ${total === 1 ? "purchase" : "purchases"} across your catalogue, in every status`
 
   return (
     <>

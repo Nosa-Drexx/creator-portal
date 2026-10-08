@@ -18,7 +18,9 @@ export function useCreateWorkspaceForm(onCreated?: () => void) {
   const form = useForm<CreateWorkspaceInput>({
     resolver: zodResolver(createWorkspaceSchema),
     defaultValues: WORKSPACE_FORM_DEFAULTS,
-    mode: "onTouched",
+    // Not onTouched: the dialog's focus handling blurs the autofocused name and flagged it as invalid on open
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   })
   const { dirtyFields } = form.formState
   const name = useWatch({ control: form.control, name: "name" })
