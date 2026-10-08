@@ -19,7 +19,7 @@ import { EAction, EModule } from "@/constants/permissions"
 import { usePermissions } from "@/hooks/use-permissions"
 import { EContentStatus } from "@/enums/content"
 import { useContentList } from "@/hooks/queries/use-content"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsCompact } from "@/hooks/use-mobile"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
 import type { Content } from "@/types/content"
 import { buildContentColumns } from "./content-columns"
@@ -38,7 +38,7 @@ const MOBILE_SORTS: { value: ContentSortKey; label: string }[] = [
 export function ContentListPage() {
   const slug = useWorkspaceSlug()
   const router = useRouter()
-  const isMobile = useIsMobile()
+  const isCompact = useIsCompact()
   const { data, isPending, error, refetch, isRefetching } = useContentList()
   const { filters, setFilters, visible, pageItems, page, totalPages, setPage, counts, sort, hasActiveFilters, clear } =
     useContentFilters(data)
@@ -77,7 +77,7 @@ export function ContentListPage() {
         }
       />
 
-      <div className="flex animate-rise flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex animate-rise flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="-mx-4 overflow-x-auto px-4 scrollbar-hide md:mx-0 md:px-0">
           <SegmentedControl
             aria-label="Filter by status"
@@ -91,9 +91,9 @@ export function ContentListPage() {
             value={filters.q}
             onChange={(q) => setFilters({ q: q || null })}
             placeholder="Search titles"
-            className="flex-1 md:w-64"
+            className="flex-1 lg:w-64"
           />
-          {isMobile && (
+          {isCompact && (
             <DropdownSelect
               aria-label="Sort content"
               options={MOBILE_SORTS}
@@ -107,7 +107,7 @@ export function ContentListPage() {
 
       <section className="overflow-hidden rounded-2xl bg-surface shadow-card max-md:-mx-1">
         {isPending ? (
-          <TableSkeleton columns={isMobile ? 2 : 6} rows={6} />
+          <TableSkeleton columns={isCompact ? 2 : 6} rows={6} />
         ) : error ? (
           <ErrorState error={error} title="We couldn't load your content" onRetry={refetch} isRetrying={isRefetching} />
         ) : visible.length === 0 ? (
@@ -132,7 +132,7 @@ export function ContentListPage() {
               }
             />
           )
-        ) : isMobile ? (
+        ) : isCompact ? (
           <ContentMobileList items={pageItems} onDelete={setToDelete} />
         ) : (
           <DataTable

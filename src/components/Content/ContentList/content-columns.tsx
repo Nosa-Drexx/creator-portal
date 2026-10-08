@@ -23,7 +23,7 @@ export function buildContentColumns(onDelete: (item: Content) => void, showMetri
       id: "title",
       header: "Video",
       cell: ({ row }) => (
-        <div className="flex min-w-[260px] items-center gap-3">
+        <div className="flex min-w-[220px] items-center gap-3 xl:min-w-[260px]">
           <ContentThumbnail
             src={row.original.thumbnailKey}
             title={row.original.title}
@@ -57,7 +57,7 @@ export function buildContentColumns(onDelete: (item: Content) => void, showMetri
     {
       id: "views",
       header: "Views",
-      meta: { sortKey: "views", align: "right" },
+      meta: { sortKey: "views", align: "right", headerClassName: "max-xl:hidden", cellClassName: "max-xl:hidden" },
       cell: ({ row }) =>
         row.original.views ? <span className="tabular">{formatCompact(row.original.views)}</span> : <Muted>—</Muted>,
     },

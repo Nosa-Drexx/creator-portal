@@ -53,7 +53,7 @@ export function ContentForm({ defaults, existing }: ContentFormProps) {
   )
 
   return (
-    <form onSubmit={vm.onSubmit} noValidate className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-6">
+    <form onSubmit={vm.onSubmit} noValidate className="grid grid-cols-1 items-start gap-5 md:max-lg:pb-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-6">
       <div className="flex min-w-0 flex-col gap-5">
         <DetailsSection form={form} />
         <MediaSection
@@ -103,8 +103,8 @@ export function ContentForm({ defaults, existing }: ContentFormProps) {
         <LivePreview control={form.control} />
       </aside>
 
-      {/* Thumb-reach action bar; the tab bar is hidden on editor pages */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stroke bg-surface/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl lg:hidden">
+      {/* Thumb-reach action bar; the tab bar is hidden on editor pages. On tablets it starts after the sidebar */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stroke bg-surface/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:left-[72px] md:px-6 md:[html[data-sidebar=expanded]_&]:left-[252px] lg:hidden">
         {submitButton("w-full")}
       </div>
 

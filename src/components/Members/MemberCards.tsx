@@ -29,8 +29,8 @@ export function MemberCards({ members, roles, onRemove }: MemberCardsProps) {
             <MemberActionsMenu member={member} onRemove={onRemove} />
           </div>
           <div className="flex items-center justify-between gap-3 pl-12">
-            <RoleSelect member={member} roles={roles} className="h-9 w-[160px]" />
-            <span className="text-xs text-text-tertiary tabular">Joined {formatDate(member.joinedAt, "d MMM yyyy")}</span>
+            <RoleSelect member={member} roles={roles} className="h-9 min-w-0 flex-1 sm:max-w-[160px]" />
+            <span className="shrink-0 text-xs whitespace-nowrap text-text-tertiary tabular">Joined {formatDate(member.joinedAt, "d MMM yyyy")}</span>
           </div>
         </li>
       ))}

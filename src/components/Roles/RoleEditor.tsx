@@ -133,23 +133,29 @@ function RoleEditorForm({ role, onClose }: { role: RoleSummary | null; onClose: 
         </Field>
       </div>
 
-      <footer className="sticky bottom-0 flex flex-col-reverse gap-2 border-t border-stroke bg-surface/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
-          {editing && !isBuiltIn(editing) && canManageRoles && (
-            <Button type="button" variant="destructive" onClick={() => setConfirmDelete(true)} className="max-sm:flex-1">
-              <HugeiconsIcon icon={Delete02Icon} size={15} />
-              Delete
-            </Button>
-          )}
-        </div>
-        <div className="flex gap-2 max-sm:flex-col-reverse">
+      {/* One row on phones too, so the permissions list keeps most of the sheet */}
+      <footer className="sticky bottom-0 flex items-center gap-2 border-t border-stroke bg-surface/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:justify-between">
+        {editing && !isBuiltIn(editing) && canManageRoles && (
+          <Button
+            type="button"
+            variant="destructive"
+            size="lg"
+            onClick={() => setConfirmDelete(true)}
+            aria-label="Delete role"
+            className="max-sm:px-3"
+          >
+            <HugeiconsIcon icon={Delete02Icon} size={15} />
+            <span className="max-sm:hidden">Delete</span>
+          </Button>
+        )}
+        <div className="flex gap-2 max-sm:flex-1 sm:ml-auto">
           {readOnly ? (
             <>
-              <Button type="button" variant="outline" size="lg" onClick={onClose} className="max-sm:w-full">
+              <Button type="button" variant="outline" size="lg" onClick={onClose} className="max-sm:flex-1">
                 Close
               </Button>
               {isBuiltIn(editing!) && canManageRoles && (
-                <Button type="button" size="lg" onClick={duplicate} className="max-sm:w-full">
+                <Button type="button" size="lg" onClick={duplicate} className="max-sm:flex-[2]">
                   <HugeiconsIcon icon={Copy01Icon} size={15} />
                   Duplicate as custom role
                 </Button>
@@ -157,10 +163,10 @@ function RoleEditorForm({ role, onClose }: { role: RoleSummary | null; onClose: 
             </>
           ) : (
             <>
-              <Button type="button" variant="outline" size="lg" onClick={onClose} disabled={save.isPending} className="max-sm:w-full">
+              <Button type="button" variant="outline" size="lg" onClick={onClose} disabled={save.isPending} className="max-sm:flex-1">
                 Cancel
               </Button>
-              <Button type="submit" size="lg" isLoading={save.isPending} className="max-sm:w-full">
+              <Button type="submit" size="lg" isLoading={save.isPending} className="max-sm:flex-1">
                 {editing ? "Save changes" : "Create role"}
               </Button>
             </>

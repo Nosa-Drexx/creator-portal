@@ -104,7 +104,8 @@ export function ContentDetailPage() {
           </SectionCard>
         </Reveal>
 
-        <Reveal delay={0.08} className="flex flex-col gap-5">
+        {/* Side by side on tablets so the preview card doesn't stretch to full width */}
+        <Reveal delay={0.08} className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 lg:grid-cols-1">
           <BuyerPreviewCard
             title={item.title}
             priceCents={item.priceCents}
@@ -126,7 +127,9 @@ export function ContentDetailPage() {
             </dl>
           </SectionCard>
           <CanRead module={EModule.Purchases}>
-            <ContentBuyers contentId={item.id} title={item.title} />
+            <div className="md:col-span-2 lg:col-span-1">
+              <ContentBuyers contentId={item.id} title={item.title} />
+            </div>
           </CanRead>
         </Reveal>
       </div>
