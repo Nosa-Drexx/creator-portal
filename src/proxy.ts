@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server"
 import { DEMO_COOKIES } from "@/constants/demo"
 
 const AUTH_PAGES = ["/login", "/signup"]
+// Work signed in or out: invitees usually don't have a session yet
+const PUBLIC_PAGES = ["/invite/"]
 
 /**
  * Optimistic redirects only: checks the session cookie exists. The API
@@ -12,6 +14,7 @@ export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has(DEMO_COOKIES.session)
   const isAuthPage = AUTH_PAGES.some((p) => pathname.startsWith(p))
 
+  if (PUBLIC_PAGES.some((p) => pathname.startsWith(p))) return NextResponse.next()
   if (!hasSession && !isAuthPage) {
     const url = new URL("/login", request.url)
     if (pathname !== "/") url.searchParams.set("next", pathname + search)

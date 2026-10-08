@@ -8,6 +8,13 @@
       "when": 1791455963414,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791462825543,
+      "tag": "0001_invite_token_ciphertext",
+      "breakpoints": true
     }
   ]
 }

@@ -14,11 +14,12 @@ import { signupSchema, type SignupInput } from "@/lib/validation/auth"
 import { AuthShell } from "./AuthShell"
 
 export function SignupForm() {
-  const next = useSearchParams().get("next")
+  const params = useSearchParams()
+  const next = params.get("next")
   const signup = useSignUp(next)
   const form = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: params.get("email") ?? "", password: "" },
     mode: "onTouched",
   })
   const { errors } = form.formState
@@ -29,11 +30,15 @@ export function SignupForm() {
   return (
     <AuthShell
       title="Create your account"
-      description="Start publishing in minutes. You'll set up your first workspace next."
+      description={
+        next?.startsWith("/invite/")
+          ? "Create your account, then you'll go straight back to accept your invitation."
+          : "Start publishing in minutes. You'll set up your first workspace next."
+      }
       footer={
         <>
           Already have an account?{" "}
-          <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="font-semibold text-text-primary underline-offset-4 hover:underline">
+          <Link href={params.size ? `/login?${params}` : "/login"} className="font-semibold text-text-primary underline-offset-4 hover:underline">
             Log in
           </Link>
         </>

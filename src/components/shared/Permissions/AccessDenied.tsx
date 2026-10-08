@@ -4,7 +4,9 @@ import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { SquareLock02Icon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
+import { landingPathFor } from "@/components/layout/nav-items"
 import { usePermissions } from "@/hooks/use-permissions"
+import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
 
 interface AccessDeniedProps {
   title?: string
@@ -15,7 +17,8 @@ export function AccessDenied({
   title = "You don't have access to this page",
   message = "Your role in this workspace doesn't include it. Ask a workspace admin if you need access.",
 }: AccessDeniedProps) {
-  const { role } = usePermissions()
+  const { role, permissions } = usePermissions()
+  const slug = useWorkspaceSlug()
 
   return (
     <div role="alert" className="flex flex-1 animate-rise flex-col items-center justify-center gap-4 px-6 py-20 text-center">
@@ -28,7 +31,7 @@ export function AccessDenied({
         {role && <p className="text-xs text-text-tertiary">Your role: {role.name}</p>}
       </div>
       <Button asChild variant="outline">
-        <Link href="/">Go to an allowed page</Link>
+        <Link href={landingPathFor(slug, permissions)}>Go to an allowed page</Link>
       </Button>
     </div>
   )

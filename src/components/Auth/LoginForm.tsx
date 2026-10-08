@@ -15,9 +15,14 @@ import { AuthShell } from "./AuthShell"
 import { DemoAccounts } from "./DemoAccounts"
 
 export function LoginForm() {
-  const next = useSearchParams().get("next")
+  const params = useSearchParams()
+  const next = params.get("next")
   const login = useLogIn(next)
-  const form = useForm<LoginInput>({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "" } })
+  // Invite links pass the invited email through
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: params.get("email") ?? "", password: "" },
+  })
   const { errors } = form.formState
 
   const onSubmit = form.handleSubmit((values) => login.mutate(values))
@@ -29,7 +34,7 @@ export function LoginForm() {
       footer={
         <>
           New to CreatorHub?{" "}
-          <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"} className="font-semibold text-text-primary underline-offset-4 hover:underline">
+          <Link href={params.size ? `/signup?${params}` : "/signup"} className="font-semibold text-text-primary underline-offset-4 hover:underline">
             Create an account
           </Link>
         </>

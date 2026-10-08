@@ -5,6 +5,7 @@ import { and, eq, gt } from "drizzle-orm"
 import { ESystemRole } from "@/constants/permissions"
 import { db } from "@/server/db/client"
 import { invitations, memberships, roles, users, workspaces, type UserRow } from "@/server/db/schema"
+import { decrypt, encrypt } from "@/server/lib/crypto"
 import { Errors } from "@/server/lib/errors"
 import { newId } from "@/server/lib/ids"
 import type { CreatedInvitation, MyInvitation, WorkspaceInvitation } from "@/types/members"
@@ -13,6 +14,8 @@ import type { TenantContext } from "./tenant"
 
 const INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000
 const hashToken = (token: string) => createHash("sha256").update(token).digest("base64url")
+const TOKEN_PURPOSE = "invitation-token"
+export const invitePath = (token: string) => `/invite/${token}`
 const isOpen = () => and(eq(invitations.status, "pending"), gt(invitations.expiresAt, new Date()))
 
 const invitationColumns = { invitation: invitations, role: roles, inviter: users }
@@ -56,7 +59,7 @@ export async function createInvitation(ctx: TenantContext, input: { email: strin
   // Re-inviting replaces the old link rather than leaving two valid ones
   await db
     .update(invitations)
-    .set({ status: "revoked", updatedAt: new Date() })
+    .set({ status: "revoked", tokenCiphertext: null, updatedAt: new Date() })
     .where(and(eq(invitations.workspaceId, ctx.workspace.id), eq(invitations.email, input.email), eq(invitations.status, "pending")))
 
   const token = randomBytes(24).toString("base64url")
@@ -69,21 +72,45 @@ export async function createInvitation(ctx: TenantContext, input: { email: strin
       roleId: role.id,
       invitedById: ctx.user.id,
       tokenHash: hashToken(token),
+      tokenCiphertext: encrypt(token, TOKEN_PURPOSE),
       expiresAt: new Date(Date.now() + INVITE_TTL_MS),
     })
     .returning()
 
   return {
     invitation: toWorkspaceInvitation({ invitation, role, inviter: ctx.user }),
-    inviteUrl: `/invite/${token}`,
+    inviteUrl: invitePath(token),
   }
+}
+
+/** Lets admins copy the same link again; lookups still go through the hash */
+export async function getInvitationLink(ctx: TenantContext, invitationId: string) {
+  assertPermission(ctx, "manage:members")
+  const [row] = await db
+    .select({ tokenCiphertext: invitations.tokenCiphertext })
+    .from(invitations)
+    .where(and(eq(invitations.id, invitationId), eq(invitations.workspaceId, ctx.workspace.id), isOpen()))
+  if (!row) throw Errors.notFound("Invitation")
+  if (!row.tokenCiphertext) throw Errors.conflict("This invitation's link can't be recovered. Revoke it and send a new one.")
+  return { inviteUrl: invitePath(decrypt(row.tokenCiphertext, TOKEN_PURPOSE)) }
+}
+
+/**
+ * Public, token-gated preview so a logged-out invitee knows what they're
+ * joining and whether to sign up or log in. Holding the link proves it was shared with them.
+ */
+export async function getInvitationPreview(token: string) {
+  const row = await findOpenInvitation(eq(invitations.tokenHash, hashToken(token)))
+  if (!row) throw Errors.notFound("Invitation")
+  const account = await db.query.users.findFirst({ where: eq(users.email, row.invitation.email), columns: { id: true } })
+  return { ...toMyInvitation(row), email: row.invitation.email, hasAccount: !!account }
 }
 
 export async function revokeInvitation(ctx: TenantContext, invitationId: string) {
   assertPermission(ctx, "manage:members")
   const result = await db
     .update(invitations)
-    .set({ status: "revoked", updatedAt: new Date() })
+    .set({ status: "revoked", tokenCiphertext: null, updatedAt: new Date() })
     .where(and(eq(invitations.id, invitationId), eq(invitations.workspaceId, ctx.workspace.id), eq(invitations.status, "pending")))
     .returning()
   if (!result.length) throw Errors.notFound("Invitation")
@@ -143,9 +170,10 @@ async function accept(user: UserRow, row: OpenInvitation | undefined) {
     if (!already) {
       await tx.insert(memberships).values({ id: newId("mem"), workspaceId: row.workspace.id, userId: user.id, roleId: row.role.id })
     }
-    await tx.update(invitations).set({ status: "accepted", updatedAt: new Date() }).where(eq(invitations.id, row.invitation.id))
+    await tx.update(invitations).set({ status: "accepted", tokenCiphertext: null, updatedAt: new Date() }).where(eq(invitations.id, row.invitation.id))
   })
-  return { slug: row.workspace.slug }
+  // Permissions let the client land on a page the new role can actually open
+  return { slug: row.workspace.slug, permissions: row.role.permissions }
 }
 
 export const acceptInvitation = async (user: UserRow, id: string) =>
@@ -157,5 +185,5 @@ export const acceptInvitationByToken = async (user: UserRow, token: string) =>
 export async function declineInvitation(user: UserRow, id: string) {
   const row = await findOpenInvitation(eq(invitations.id, id))
   if (!row || row.invitation.email !== user.email) throw Errors.notFound("Invitation")
-  await db.update(invitations).set({ status: "declined", updatedAt: new Date() }).where(eq(invitations.id, id))
+  await db.update(invitations).set({ status: "declined", tokenCiphertext: null, updatedAt: new Date() }).where(eq(invitations.id, id))
 }

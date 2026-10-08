@@ -1,6 +1,6 @@
 import { apiClient, type Envelope } from "@/lib/axios"
 import type { InviteInput, RoleInput } from "@/lib/validation/members"
-import type { CreatedInvitation, Member, MyInvitation, RoleSummary, WorkspaceInvitation } from "@/types/members"
+import type { AcceptedInvitation, CreatedInvitation, InvitationPreview, Member, MyInvitation, RoleSummary, WorkspaceInvitation } from "@/types/members"
 
 const ws = (slug: string) => `/workspaces/${slug}`
 
@@ -55,8 +55,8 @@ export async function fetchMyInvitations(): Promise<MyInvitation[]> {
   return data.data
 }
 
-export async function acceptInvitation(id: string): Promise<{ slug: string }> {
-  const { data } = await apiClient.post<Envelope<{ slug: string }>>(`/invitations/${id}/accept`)
+export async function acceptInvitation(id: string): Promise<AcceptedInvitation> {
+  const { data } = await apiClient.post<Envelope<AcceptedInvitation>>(`/invitations/${id}/accept`)
   return data.data
 }
 
@@ -64,14 +64,17 @@ export async function declineInvitation(id: string): Promise<void> {
   await apiClient.post(`/invitations/${id}/decline`)
 }
 
-export async function fetchInvitationByToken(token: string) {
-  const { data } = await apiClient.get<Envelope<MyInvitation & { forYou: boolean; email: string }>>(
-    `/invitations/token/${token}`,
-  )
+export async function fetchInvitationLink(slug: string, invitationId: string): Promise<{ inviteUrl: string }> {
+  const { data } = await apiClient.get<Envelope<{ inviteUrl: string }>>(`${ws(slug)}/invitations/${invitationId}/link`)
   return data.data
 }
 
-export async function acceptInvitationByToken(token: string): Promise<{ slug: string }> {
-  const { data } = await apiClient.post<Envelope<{ slug: string }>>(`/invitations/token/${token}`)
+export async function fetchInvitationPreview(token: string): Promise<InvitationPreview> {
+  const { data } = await apiClient.get<Envelope<InvitationPreview>>(`/invitations/preview/${token}`)
+  return data.data
+}
+
+export async function acceptInvitationByToken(token: string): Promise<AcceptedInvitation> {
+  const { data } = await apiClient.post<Envelope<AcceptedInvitation>>(`/invitations/token/${token}`)
   return data.data
 }

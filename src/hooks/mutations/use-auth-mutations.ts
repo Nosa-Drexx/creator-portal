@@ -35,12 +35,12 @@ export function useSignUp(next: string | null) {
   })
 }
 
-export function useLogOut() {
+export function useLogOut(redirectTo = "/login") {
   const router = useRouter()
   return useMutation({
     mutationFn: logOut,
     // Cache is cleared on the next login; clearing now would refetch mounted queries into 401s
-    onSuccess: () => router.replace("/login"),
+    onSuccess: () => router.replace(redirectTo),
     onError: (error) => customToast("error", getApiErrorMessage(error, "We couldn't log you out. Please try again.")),
   })
 }

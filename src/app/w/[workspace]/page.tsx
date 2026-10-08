@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Overview" }
 export default function Page() {
   return (
     <ClientBoundary fallback={<OverviewSkeleton />}>
-      <RequirePermission module={EModule.Analytics} fallback={<OverviewSkeleton />}>
+      <RequirePermission module={EModule.Analytics} fallback={<OverviewSkeleton />} redirectIfDenied>
         <OverviewPage />
       </RequirePermission>
     </ClientBoundary>

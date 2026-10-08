@@ -34,9 +34,20 @@ export interface MyInvitation {
   expiresAt: string
 }
 
+/** Public view of an invite link, for invitees who aren't signed in yet */
+export interface InvitationPreview extends MyInvitation {
+  email: string
+  hasAccount: boolean
+}
+
+export interface AcceptedInvitation {
+  slug: string
+  permissions: string[]
+}
+
 export interface CreatedInvitation {
   invitation: WorkspaceInvitation
-  /** Shown once; only a hash is stored */
+  /** Admins can copy it again later from the pending list */
   inviteUrl: string
 }
 

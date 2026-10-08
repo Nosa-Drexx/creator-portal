@@ -3,12 +3,12 @@
 import { useState } from "react"
 import { differenceInCalendarDays } from "date-fns"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Cancel01Icon, Clock01Icon, Mail01Icon } from "@hugeicons/core-free-icons"
+import { Cancel01Icon, Clock01Icon, Link01Icon, Mail01Icon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { StatusBadge } from "@/components/shared/StatusBadge"
-import { useRevokeInvitation } from "@/hooks/mutations/use-member-mutations"
+import { useCopyInvitationLink, useRevokeInvitation } from "@/hooks/mutations/use-member-mutations"
 import { useWorkspaceInvitations } from "@/hooks/queries/use-members"
 import type { WorkspaceInvitation } from "@/types/members"
 
@@ -21,6 +21,7 @@ function expiresIn(iso: string) {
 export function PendingInvitations() {
   const { data: invitations } = useWorkspaceInvitations()
   const revoke = useRevokeInvitation()
+  const copyLink = useCopyInvitationLink()
   const [toRevoke, setToRevoke] = useState<WorkspaceInvitation | null>(null)
 
   if (!invitations?.length) return null
@@ -48,16 +49,27 @@ export function PendingInvitations() {
                 </span>
               </span>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setToRevoke(invite)}
-              aria-label={`Revoke invitation for ${invite.email}`}
-              className="shrink-0"
-            >
-              <HugeiconsIcon icon={Cancel01Icon} size={14} />
-              <span className="max-sm:sr-only">Revoke</span>
-            </Button>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyLink.mutate(invite.id)}
+                isLoading={copyLink.isPending && copyLink.variables === invite.id}
+                aria-label={`Copy invite link for ${invite.email}`}
+              >
+                <HugeiconsIcon icon={Link01Icon} size={14} />
+                <span className="max-sm:sr-only">Copy link</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setToRevoke(invite)}
+                aria-label={`Revoke invitation for ${invite.email}`}
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={14} />
+                <span className="max-sm:sr-only">Revoke</span>
+              </Button>
+            </div>
           </li>
         ))}
       </ul>

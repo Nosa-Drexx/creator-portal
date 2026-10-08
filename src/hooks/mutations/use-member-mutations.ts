@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
-import { routes } from "@/constants/routes"
+import { landingPathFor } from "@/components/layout/nav-items"
 import {
   MEMBERS_QUERY_KEY,
   MY_INVITATIONS_QUERY_KEY,
@@ -75,6 +75,19 @@ export function useRevokeInvitation() {
   })
 }
 
+/** Fetches the link on demand and copies it, so it never sits in the list payload */
+export function useCopyInvitationLink() {
+  const slug = useWorkspaceSlug()
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      const { inviteUrl } = await api.fetchInvitationLink(slug, invitationId)
+      await navigator.clipboard.writeText(new URL(inviteUrl, window.location.origin).toString())
+    },
+    onSuccess: () => customToast("success", "Invite link copied"),
+    onError: toastError("We couldn't copy that link."),
+  })
+}
+
 export function useSaveRole(roleId?: string) {
   const slug = useWorkspaceSlug()
   const invalidate = useInvalidateTeam()
@@ -109,10 +122,10 @@ export function useRespondToInvitation() {
   }
   const accept = useMutation({
     mutationFn: api.acceptInvitation,
-    onSuccess: ({ slug }) => {
+    onSuccess: ({ slug, permissions }) => {
       refresh()
       customToast("success", "You've joined the workspace")
-      router.push(routes.overview(slug))
+      router.push(landingPathFor(slug, permissions))
     },
     onError: toastError("We couldn't accept that invitation."),
   })

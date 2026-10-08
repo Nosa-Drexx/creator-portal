@@ -97,6 +97,8 @@ export const invitations = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     /** SHA-256 of the link token, same approach as sessions */
     tokenHash: text("token_hash").notNull().unique(),
+    /** AES-GCM encrypted token, so admins can copy the same link again later */
+    tokenCiphertext: text("token_ciphertext"),
     status: text("status", { enum: ["pending", "accepted", "declined", "revoked"] }).notNull().default("pending"),
     expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
     ...timestamps,

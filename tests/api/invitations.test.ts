@@ -3,6 +3,8 @@ import { POST as acceptById } from "@/app/api/invitations/[id]/accept/route"
 import { GET as myInvites } from "@/app/api/invitations/route"
 import { POST as acceptByToken } from "@/app/api/invitations/token/[token]/route"
 import { POST as signup } from "@/app/api/auth/signup/route"
+import { GET as preview } from "@/app/api/invitations/preview/[token]/route"
+import { GET as copyLink } from "@/app/api/workspaces/[slug]/invitations/[invitationId]/link/route"
 import { DELETE as revoke } from "@/app/api/workspaces/[slug]/invitations/[invitationId]/route"
 import { POST as invite } from "@/app/api/workspaces/[slug]/invitations/route"
 import { GET as getWorkspace } from "@/app/api/workspaces/[slug]/route"
@@ -62,5 +64,43 @@ describe("invitations", () => {
     for (const { inviteUrl } of [first, second]) {
       expect((await acceptByToken(req("/x", { method: "POST" }), ctx({ token: inviteUrl.split("/").pop()! }))).status).toBe(404)
     }
+  })
+
+  it("previews an invite without a session, so invitees can sign up first", async () => {
+    const { inviteUrl } = await sendInvite("newbie@example.com")
+    cookieJar.clear()
+    const res = await preview(req("/x"), ctx({ token: inviteUrl.split("/").pop()! }))
+    expect(res.status).toBe(200)
+    const { data } = await json(res)
+    expect(data).toMatchObject({ email: "newbie@example.com", hasAccount: false, workspace: { slug } })
+    expect((await preview(req("/x"), ctx({ token: "not-a-real-token" }))).status).toBe(404)
+  })
+
+  it("returns the same working link when an admin copies it again", async () => {
+    const { inviteUrl, invitation } = await sendInvite("theo@creatorhub.dev")
+    const copied = await json(await copyLink(req("/x"), ctx({ slug, invitationId: invitation.id })))
+    expect(copied.data.inviteUrl).toBe(inviteUrl)
+
+    cookieJar.clear()
+    await signInAs("usr_demo_sam")
+    expect((await copyLink(req("/x"), ctx({ slug, invitationId: invitation.id }))).status).toBe(403)
+
+    cookieJar.clear()
+    await signInAs("usr_demo_theo")
+    expect((await acceptByToken(req("/x", { method: "POST" }), ctx({ token: inviteUrl.split("/").pop()! }))).status).toBe(200)
+  })
+
+  it("kills the link once accepted: no second accept, preview or copy", async () => {
+    const { inviteUrl, invitation } = await sendInvite("theo@creatorhub.dev")
+    const token = inviteUrl.split("/").pop()!
+    cookieJar.clear()
+    await signInAs("usr_demo_theo")
+    const accepted = await json(await acceptByToken(req("/x", { method: "POST" }), ctx({ token })))
+    expect(accepted.data.permissions).toContain("create:content")
+    expect((await acceptByToken(req("/x", { method: "POST" }), ctx({ token }))).status).toBe(404)
+    expect((await preview(req("/x"), ctx({ token }))).status).toBe(404)
+    cookieJar.clear()
+    await signInAs("usr_demo_amara")
+    expect((await copyLink(req("/x"), ctx({ slug, invitationId: invitation.id }))).status).toBe(404)
   })
 })
