@@ -29,7 +29,7 @@ export function SidebarNav() {
                 href={item.href(slug)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-sm font-medium transition-colors max-lg:justify-center",
+                  "relative flex h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-sm font-medium transition-colors collapsed:justify-center",
                   active ? "text-text-primary" : "text-text-secondary hover:bg-muted/70 hover:text-text-primary",
                 )}
               >
@@ -45,13 +45,13 @@ export function SidebarNav() {
                   size={18}
                   className={cn("relative shrink-0", active && "text-brand")}
                 />
-                <span className="relative hidden flex-1 lg:inline">{item.label}</span>
+                <span className="relative flex-1 truncate collapsed:hidden">{item.label}</span>
                 {item.id === "verification" && needsVerification && (
-                  <span className="relative size-1.5 rounded-full bg-warning max-lg:absolute max-lg:top-2 max-lg:right-2" />
+                  <span className="relative size-1.5 rounded-full bg-warning collapsed:absolute collapsed:top-2 collapsed:right-2" />
                 )}
               </Link>
             </TooltipTrigger>
-            <TooltipContent side="right" className="lg:hidden">
+            <TooltipContent side="right" className="hidden collapsed:block">
               {item.label}
             </TooltipContent>
           </Tooltip>

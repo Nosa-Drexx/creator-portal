@@ -15,7 +15,7 @@ export function VerifyCallout() {
   const pending = workspace.verificationStatus === EVerificationStatus.Pending
 
   return (
-    <div className="hidden animate-rise flex-col gap-3 rounded-xl border border-stroke bg-surface p-3.5 shadow-card lg:flex">
+    <div className="flex animate-rise flex-col gap-3 rounded-xl border border-stroke bg-surface p-3.5 shadow-card collapsed:hidden">
       <div className="flex items-center gap-2 text-text-primary">
         <span className="grid size-7 place-items-center rounded-lg bg-warning-surface text-warning">
           <HugeiconsIcon icon={SquareLock02Icon} size={15} />

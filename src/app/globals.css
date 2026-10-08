@@ -5,6 +5,8 @@
 @import "./styles/motion.css";
 
 @custom-variant dark (&:is(.dark *));
+/* Desktop sidebar collapsed to its icon rail */
+@custom-variant collapsed (&:where([data-collapsed="true"], [data-collapsed="true"] *));
 
 @theme inline {
   --color-background: var(--background);
