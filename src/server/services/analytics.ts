@@ -7,6 +7,7 @@ import { EPurchaseStatus } from "@/enums/purchases"
 import { db } from "@/server/db/client"
 import { content, purchases } from "@/server/db/schema"
 import type { OverviewStats, RevenueSeries, SeriesPoint } from "@/types/analytics"
+import { assertPermission } from "./permissions"
 import type { TenantContext } from "./tenant"
 
 const DAY_MS = 86_400_000
@@ -35,6 +36,7 @@ function startOfUtcMonth(date: Date, offset = 0) {
 }
 
 export async function getOverview(ctx: TenantContext): Promise<OverviewStats> {
+  assertPermission(ctx, "view:analytics")
   const now = new Date()
   const thisMonth = startOfUtcMonth(now)
   const lastMonth = startOfUtcMonth(now, -1)
@@ -84,6 +86,7 @@ function buildBuckets(range: EAnalyticsRange, now: Date) {
 }
 
 export async function getRevenueSeries(ctx: TenantContext, range: EAnalyticsRange): Promise<RevenueSeries> {
+  assertPermission(ctx, "view:analytics")
   const now = new Date()
   const { bucket, starts, from, format } = buildBuckets(range, now)
   const periodMs = now.getTime() - from.getTime()

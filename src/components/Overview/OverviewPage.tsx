@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { Reveal } from "@/components/shared/motion/Reveal"
 import { routes } from "@/constants/routes"
+import { CanCreate, CanRead } from "@/components/shared/Permissions"
+import { EModule } from "@/constants/permissions"
 import { useSession } from "@/hooks/queries/use-session"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
 import { RecentPurchasesCard } from "./RecentPurchasesCard"
@@ -32,12 +34,14 @@ export function OverviewPage() {
         title={firstName ? `${greeting()}, ${firstName}` : greeting()}
         description="Here's how your content is performing."
         actions={
-          <Button asChild variant="outline" className="max-md:hidden">
-            <Link href={routes.newContent(slug)}>
-              <HugeiconsIcon icon={Add01Icon} size={16} />
-              New video
-            </Link>
-          </Button>
+          <CanCreate module={EModule.Content}>
+            <Button asChild variant="outline" className="max-md:hidden">
+              <Link href={routes.newContent(slug)}>
+                <HugeiconsIcon icon={Add01Icon} size={16} />
+                New video
+              </Link>
+            </Button>
+          </CanCreate>
         }
       />
       <StatsGrid />
@@ -45,8 +49,12 @@ export function OverviewPage() {
         <RevenueChartCard />
       </Reveal>
       <Reveal delay={0.18} className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
-        <TopContentCard />
-        <RecentPurchasesCard />
+        <CanRead module={EModule.Content}>
+          <TopContentCard />
+        </CanRead>
+        <CanRead module={EModule.Purchases}>
+          <RecentPurchasesCard />
+        </CanRead>
       </Reveal>
     </>
   )

@@ -38,6 +38,8 @@ Before any code was written, I gave the AI a detailed brief: what to build, how 
 | 8 | Built the theme toggle as an icon button that cross-faded sun and moon. | **I asked for a real switch** (shadcn `Switch`) so it reads and behaves like a toggle. The thumb now slides and carries the icon, and the theme is applied once the slide finishes. |
 | 9 | Authentication was simulated: every request acted as a seeded demo user, because the brief didn't require production auth. | **I asked for real login.** A product with workspace members needs real accounts. Added sign up, log in and log out, hashed passwords, server-side sessions, a route guard, onboarding, and one-click demo accounts so reviewers can still get in instantly. |
 | 10 | No way for users to manage their own account. | **I asked for profile management:** name, password and profile photo. I also had email made read-only, since it's the login identifier. Photos are cropped and resized in the browser, and changing the password signs out other devices. |
+| 11 | Workspace access was all-or-nothing (owners plus a simple editor rule). | **I asked for real roles and permissions**, built the way I build permission guards in production apps: `action:module` permissions, permission helpers, a `usePermissions` hook, `<CanX>` and `<RequirePermission>` guard components, permission-filtered navigation, member invitations and custom roles. I also required server-side enforcement so the UI guards are only UX. |
+| 12 | Allowed owners to grant ownership and only protected the *last* owner, and let people change their own role. | **I tightened the ownership rules:** the owner's role can never be changed (by themselves or by admins with member permissions), the owner can't be removed or leave, and nobody can change their own role. The AI made the Owner role non-assignable to keep "one fixed owner" consistent, enforced it in the API, mirrored it in the UI and added tests. |
 
 _(more entries are added as development continues)_
 
@@ -59,10 +61,12 @@ These are cases where the AI's first attempt was wrong, and testing (not trust) 
 | In dev, the cached database client kept a pre-migration schema, so login read users without a password hash. | A Chrome login failed even though the API logic passed its tests. Debugged with `curl` and the dev server log. | Cache only the raw connection, and rebuild the ORM wrapper on hot reload. |
 | Per-route module copies in dev each ran the "seed if empty" step, so two requests raced to seed. | Duplicate-insert errors in the server log. | The setup promise is shared on `globalThis`. |
 | The first auth design would have looped between `/login` and `/` when a session cookie was stale. | Code review of the proxy and 401 handling before testing. | The API clears an invalid session cookie when it returns 401. |
+| The first pass at permissions hid revenue columns in the UI, but the content API still returned revenue to Editors. | Reviewing what each role's API responses contained, not just what the UI showed. | The server now leaves out views, purchases and revenue for roles without `view:analytics`, and a test asserts it. |
+| Editors in a verified workspace were told to "verify your identity" when they tried to publish. | Walking through the Editor account in Chrome. | Separate lock reasons: a missing role permission vs workspace verification, each with its own message. |
 
 ## How I verified AI-generated code
 
-- **Automated:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (38 tests, including endpoint tests that call the real route handlers against a throwaway SQLite database) and `pnpm build`.
+- **Automated:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (51 tests, including endpoint tests that call the real route handlers against a throwaway SQLite database) and `pnpm build`.
 - **API by hand:** `curl` checks of the publishing rule (403 `VERIFICATION_REQUIRED`), tenant isolation (404 across workspaces), signed upload replay and tampering, and HTTP range requests for video seeking.
 - **Browser:** end-to-end walkthroughs in Chrome of every flow (dashboard, upload with real progress, frame-to-thumbnail, publish gate, verification, destructive confirmations) at desktop and at a 390px mobile viewport, in light and dark themes.
 - **Review:** I read every diff myself before committing.

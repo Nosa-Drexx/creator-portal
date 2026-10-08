@@ -12,6 +12,7 @@ import { db } from "@/server/db/client"
 import { users } from "@/server/db/schema"
 import { handle, ok, parseJson } from "@/server/lib/http"
 import { requireUser } from "@/server/lib/session"
+import { assertPermission } from "@/server/services/permissions"
 import { requireTenant } from "@/server/services/tenant"
 import { setVerificationStatus } from "@/server/services/verification"
 
@@ -57,6 +58,7 @@ export const POST = handle(
     }
 
     const tenant = await requireTenant(body.workspace)
+    assertPermission(tenant, "manage:verification")
     await setVerificationStatus(tenant.workspace.id, body.status)
     return ok({ status: body.status })
   },

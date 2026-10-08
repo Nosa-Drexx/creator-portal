@@ -1,12 +1,16 @@
 import type { Database } from "../client"
 import * as schema from "../schema"
+import { createHash, randomBytes } from "node:crypto"
+import { ESystemRole } from "@/constants/permissions"
 import { hashPassword } from "@/server/auth/password"
+import { createSystemRoles } from "@/server/services/system-roles"
 import {
   DEMO_PASSWORD,
   DEMO_USER,
   FOREIGN_CONTENT,
   OTHER_USER,
   STUDIO_CONTENT,
+  TEAM_USERS,
   TRAVEL_CONTENT,
   WORKSPACES,
   type ContentFixture,
@@ -99,11 +103,13 @@ async function seedWorkspaceContent(
 
 export async function clearDatabase(db: Database) {
   await db.delete(schema.sessions)
+  await db.delete(schema.invitations)
   await db.delete(schema.purchases)
   await db.delete(schema.uploads)
   await db.delete(schema.content)
   await db.delete(schema.verifications)
   await db.delete(schema.memberships)
+  await db.delete(schema.roles)
   await db.delete(schema.workspaces)
   await db.delete(schema.users)
 }
@@ -112,13 +118,49 @@ export async function seedDatabase(db: Database, now = new Date()) {
   await clearDatabase(db)
 
   const passwordHash = await hashPassword(DEMO_PASSWORD)
-  await db.insert(schema.users).values([DEMO_USER, OTHER_USER].map((u) => ({ ...u, passwordHash })))
+  await db
+    .insert(schema.users)
+    .values([DEMO_USER, OTHER_USER, ...TEAM_USERS].map(({ id, name, email }) => ({ id, name, email, passwordHash })))
   await db.insert(schema.workspaces).values(Object.values(WORKSPACES).map((w) => ({ ...w })))
+
+  const studioRoles = await createSystemRoles(db, WORKSPACES.studio.id, {
+    [ESystemRole.Owner]: "rol_studio_owner",
+    [ESystemRole.Admin]: "rol_studio_admin",
+    [ESystemRole.Editor]: "rol_studio_editor",
+    [ESystemRole.Analyst]: "rol_studio_analyst",
+  })
+  const travelRoles = await createSystemRoles(db, WORKSPACES.travel.id)
+  const northRoles = await createSystemRoles(db, WORKSPACES.foreign.id)
+  await db.insert(schema.roles).values({
+    id: "rol_studio_producer",
+    workspaceId: WORKSPACES.studio.id,
+    name: "Video Producer",
+    description: "Uploads, edits and publishes videos, and can see how they perform",
+    permissions: ["view:analytics", "view:content", "create:content", "edit:content", "publish:content", "view:members"],
+  })
+
   await db.insert(schema.memberships).values([
-    { id: "mem_amara_studio", workspaceId: WORKSPACES.studio.id, userId: DEMO_USER.id, role: "owner" },
-    { id: "mem_amara_travel", workspaceId: WORKSPACES.travel.id, userId: DEMO_USER.id, role: "owner" },
-    { id: "mem_theo_north", workspaceId: WORKSPACES.foreign.id, userId: OTHER_USER.id, role: "owner" },
+    { id: "mem_amara_studio", workspaceId: WORKSPACES.studio.id, userId: DEMO_USER.id, roleId: studioRoles.owner },
+    { id: "mem_amara_travel", workspaceId: WORKSPACES.travel.id, userId: DEMO_USER.id, roleId: travelRoles.owner },
+    { id: "mem_theo_north", workspaceId: WORKSPACES.foreign.id, userId: OTHER_USER.id, roleId: northRoles.owner },
+    ...TEAM_USERS.map((u) => ({
+      id: `mem_${u.id.replace("usr_demo_", "")}_studio`,
+      workspaceId: WORKSPACES.studio.id,
+      userId: u.id,
+      roleId: studioRoles[u.role],
+    })),
   ])
+
+  // Theo has a pending invite, so the accept flow can be tried by logging in as him
+  await db.insert(schema.invitations).values({
+    id: "inv_theo_studio",
+    workspaceId: WORKSPACES.studio.id,
+    email: OTHER_USER.email,
+    roleId: "rol_studio_producer",
+    invitedById: DEMO_USER.id,
+    tokenHash: createHash("sha256").update(randomBytes(32)).digest("base64url"),
+    expiresAt: new Date(now.getTime() + 14 * DAY_MS),
+  })
 
   const reviewedAt = new Date(now.getTime() - 400 * DAY_MS)
   await db.insert(schema.verifications).values([

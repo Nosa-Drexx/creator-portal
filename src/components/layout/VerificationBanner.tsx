@@ -7,12 +7,16 @@ import { ArrowRight01Icon, SquareLock02Icon } from "@hugeicons/core-free-icons"
 import { routes } from "@/constants/routes"
 import { EVerificationStatus } from "@/enums/verification"
 import { useWorkspace } from "@/hooks/queries/use-workspace"
+import { EAction, EModule } from "@/constants/permissions"
+import { usePermissions } from "@/hooks/use-permissions"
 
 /** Below desktop the sidebar callout is hidden, so surface the lock here instead */
 export function VerificationBanner() {
   const { data: workspace } = useWorkspace()
+  const { can } = usePermissions()
   const pathname = usePathname()
-  if (!workspace || workspace.canPublish) return null
+  if (!workspace || workspace.verificationStatus === EVerificationStatus.Verified) return null
+  if (!can(EAction.View, EModule.Verification)) return null
   if (pathname.startsWith(routes.verification(workspace.slug))) return null
   const pending = workspace.verificationStatus === EVerificationStatus.Pending
 

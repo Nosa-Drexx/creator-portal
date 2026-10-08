@@ -5,6 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { SidebarLeftIcon } from "@hugeicons/core-free-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSidebarState } from "@/hooks/use-sidebar-state"
+import { CanCreate } from "@/components/shared/Permissions"
+import { EModule } from "@/constants/permissions"
 import { CreateButton } from "./CreateButton"
 import { SidebarNav } from "./SidebarNav"
 import { UserCard } from "./UserCard"
@@ -35,7 +37,9 @@ export function Sidebar() {
       data-collapsed={collapsed}
       className="group/sidebar sticky top-0 hidden h-dvh w-[252px] shrink-0 flex-col gap-5 border-r border-stroke bg-canvas px-4 py-4 transition-[width,padding] duration-300 ease-out-soft md:flex collapsed:w-[72px] collapsed:px-3">
       <WorkspaceSwitcher className="collapsed:justify-center" />
-      <CreateButton />
+      <CanCreate module={EModule.Content}>
+        <CreateButton />
+      </CanCreate>
       <SidebarNav />
       <div className="mt-auto flex flex-col gap-4">
         <VerifyCallout />

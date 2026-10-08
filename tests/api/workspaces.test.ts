@@ -17,7 +17,7 @@ describe("POST /api/workspaces", () => {
     const res = await create({ name: "Kitchen Table Sessions", handle: "kitchentable", accentColor: "#8b5cf6" })
     expect(res.status).toBe(201)
     const { data } = await json(res)
-    expect(data).toMatchObject({ slug: "kitchen-table-sessions", handle: "@kitchentable", role: "owner", canPublish: false })
+    expect(data).toMatchObject({ slug: "kitchen-table-sessions", handle: "@kitchentable", role: { name: "Owner", systemKey: "owner" }, canPublish: false })
 
     const session = await json(await getSession(req("/api/session"), ctx({})))
     expect(session.data.workspaces.map((w: { slug: string }) => w.slug)).toContain("kitchen-table-sessions")

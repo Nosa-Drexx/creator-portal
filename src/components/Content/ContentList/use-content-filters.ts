@@ -17,9 +17,9 @@ const parsers = {
 
 const SORTERS: Record<ContentSortKey, (c: Content) => number> = {
   updated: (c) => new Date(c.updatedAt).getTime(),
-  revenue: (c) => c.revenueCents,
-  views: (c) => c.views,
-  purchases: (c) => c.purchases,
+  revenue: (c) => c.revenueCents ?? 0,
+  views: (c) => c.views ?? 0,
+  purchases: (c) => c.purchases ?? 0,
   price: (c) => c.priceCents,
 }
 

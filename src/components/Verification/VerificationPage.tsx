@@ -10,10 +10,11 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { VERIFICATION_STATUS } from "@/constants/status"
 import { EVerificationStatus } from "@/enums/verification"
-import { EWorkspaceRole } from "@/enums/workspace"
+import { EAction, EModule } from "@/constants/permissions"
+import { usePermissions } from "@/hooks/use-permissions"
 import { SESSION_QUERY_KEY } from "@/hooks/queries/use-session"
 import { useVerification } from "@/hooks/queries/use-verification"
-import { useWorkspace, WORKSPACE_QUERY_KEY } from "@/hooks/queries/use-workspace"
+import { WORKSPACE_QUERY_KEY } from "@/hooks/queries/use-workspace"
 import { SubmittedState } from "./SubmittedState"
 import { VerificationIntro } from "./VerificationIntro"
 import { VerificationSkeleton } from "./VerificationSkeleton"
@@ -41,7 +42,7 @@ function useApprovalSync(status: EVerificationStatus | undefined) {
 }
 
 export function VerificationPage() {
-  const { data: workspace } = useWorkspace()
+  const { can } = usePermissions()
   const { data: verification, isPending, error, refetch, isRefetching } = useVerification()
   const justApproved = useApprovalSync(verification?.status)
 
@@ -52,7 +53,7 @@ export function VerificationPage() {
 
   const status = verification.status
   const badge = VERIFICATION_STATUS[status]
-  const isOwner = workspace?.role === EWorkspaceRole.Owner
+  const isOwner = can(EAction.Manage, EModule.Verification)
   const showWizard = status === EVerificationStatus.Unverified || status === EVerificationStatus.Rejected
 
   return (

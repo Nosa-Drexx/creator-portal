@@ -26,6 +26,7 @@ interface PublishOptionsProps {
   onScheduledForChange: (value: string) => void
   scheduleError?: string
   canPublish: boolean
+  lockReason?: "permission" | "verification" | null
   onLockedSelect: (value: EContentStatus) => void
 }
 
@@ -36,8 +37,10 @@ export function PublishOptions({
   onScheduledForChange,
   scheduleError,
   canPublish,
+  lockReason,
   onLockedSelect,
 }: PublishOptionsProps) {
+  const lockedHint = lockReason === "permission" ? "Your role can't publish" : "Requires identity verification"
   return (
     <div className="flex flex-col gap-3">
       <div role="radiogroup" aria-label="Visibility" className="grid gap-2">
@@ -68,7 +71,7 @@ export function PublishOptions({
               </span>
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="text-[13.5px] font-semibold text-text-primary">{option.label}</span>
-                <span className="text-xs text-text-tertiary">{locked ? "Requires identity verification" : option.hint}</span>
+                <span className="text-xs text-text-tertiary">{locked ? lockedHint : option.hint}</span>
               </span>
               {locked ? (
                 <HugeiconsIcon icon={SquareLock02Icon} size={16} className="shrink-0 text-text-tertiary" />

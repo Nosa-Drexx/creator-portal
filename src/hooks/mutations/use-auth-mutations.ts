@@ -23,14 +23,14 @@ export function useLogIn(next: string | null) {
   })
 }
 
-export function useSignUp() {
+export function useSignUp(next: string | null) {
   const router = useRouter()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: signUp,
     onSuccess: () => {
       queryClient.clear()
-      router.replace("/onboarding")
+      router.replace(next ? safeNextPath(next) : "/onboarding")
     },
   })
 }

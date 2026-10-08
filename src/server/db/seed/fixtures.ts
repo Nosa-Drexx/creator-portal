@@ -27,6 +27,13 @@ export const OTHER_USER = {
   email: "theo@creatorhub.dev",
 }
 
+/** Members of Amara Studio, one per built-in role, so reviewers can see permissions in action */
+export const TEAM_USERS = [
+  { id: "usr_demo_jordan", name: "Jordan Blake", email: "jordan@creatorhub.dev", role: "admin" },
+  { id: "usr_demo_priya", name: "Priya Shah", email: "priya@creatorhub.dev", role: "editor" },
+  { id: "usr_demo_sam", name: "Sam Okafor", email: "sam@creatorhub.dev", role: "analyst" },
+] as const
+
 export const WORKSPACES = {
   studio: {
     id: "ws_amara_studio",

@@ -11,9 +11,15 @@ import { useSaveContent } from "@/hooks/mutations/use-content-mutations"
 import { useWorkspace } from "@/hooks/queries/use-workspace"
 import { customToast } from "@/hooks/use-toast"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
+import { usePermissions } from "@/hooks/use-permissions"
 import { getApiError, isApiErrorCode } from "@/lib/axios"
 import type { Content } from "@/types/content"
 import { contentFormSchema, defaultScheduleTime, toPayload, type ContentFormValues } from "./schema"
+
+export type PublishLock = "permission" | "verification" | null
+
+export const notifyPublishBlocked = () =>
+  customToast("info", "Your role can't publish videos. Save it as a draft and an admin can publish it.")
 
 const SUCCESS_COPY: Record<EContentStatus, string> = {
   [EContentStatus.Draft]: "Draft saved",
@@ -36,7 +42,10 @@ export function useContentForm(defaults: ContentFormValues, existing?: Content) 
   })
 
   const isUploading = uploads.thumbnail || uploads.video
+  const { has } = usePermissions()
   const canPublish = workspace?.canPublish ?? false
+  // Role is checked first: an editor in a verified workspace still can't publish
+  const lockReason: PublishLock = canPublish ? null : !has("publish:content") ? "permission" : "verification"
   const { isDirty } = form.formState
 
   // Native guard for tab close / refresh with unsaved work
@@ -71,8 +80,9 @@ export function useContentForm(defaults: ContentFormValues, existing?: Content) 
   }
 
   const onSubmit = form.handleSubmit((values) => {
-    if (values.status !== EContentStatus.Draft && !canPublish) {
-      setVerifyPrompt(true)
+    if (values.status !== EContentStatus.Draft && lockReason) {
+      if (lockReason === "permission") notifyPublishBlocked()
+      else setVerifyPrompt(true)
       return
     }
     return persist(values, values.status)
@@ -104,6 +114,7 @@ export function useContentForm(defaults: ContentFormValues, existing?: Content) 
     isSaving: save.isPending,
     isUploading,
     canPublish,
+    lockReason,
     verificationStatus: workspace?.verificationStatus,
     setThumbUploading,
     setVideoUploading,

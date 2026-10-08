@@ -20,15 +20,35 @@ CREATE TABLE `content` (
 );
 --> statement-breakpoint
 CREATE INDEX `content_ws_status_idx` ON `content` (`workspace_id`,`status`);--> statement-breakpoint
+CREATE TABLE `invitations` (
+	`id` text PRIMARY KEY NOT NULL,
+	`workspace_id` text NOT NULL,
+	`email` text NOT NULL,
+	`role_id` text NOT NULL,
+	`invited_by_id` text NOT NULL,
+	`token_hash` text NOT NULL,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`expires_at` integer NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`workspace_id`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`invited_by_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `invitations_token_hash_unique` ON `invitations` (`token_hash`);--> statement-breakpoint
+CREATE INDEX `invitations_email_idx` ON `invitations` (`email`);--> statement-breakpoint
+CREATE INDEX `invitations_ws_idx` ON `invitations` (`workspace_id`);--> statement-breakpoint
 CREATE TABLE `memberships` (
 	`id` text PRIMARY KEY NOT NULL,
 	`workspace_id` text NOT NULL,
 	`user_id` text NOT NULL,
-	`role` text NOT NULL,
+	`role_id` text NOT NULL,
 	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
 	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
 	FOREIGN KEY (`workspace_id`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `memberships_ws_user_idx` ON `memberships` (`workspace_id`,`user_id`);--> statement-breakpoint
@@ -50,6 +70,32 @@ CREATE TABLE `purchases` (
 --> statement-breakpoint
 CREATE INDEX `purchases_ws_created_idx` ON `purchases` (`workspace_id`,`created_at`);--> statement-breakpoint
 CREATE INDEX `purchases_content_idx` ON `purchases` (`content_id`);--> statement-breakpoint
+CREATE TABLE `roles` (
+	`id` text PRIMARY KEY NOT NULL,
+	`workspace_id` text NOT NULL,
+	`name` text NOT NULL,
+	`description` text DEFAULT '' NOT NULL,
+	`system_key` text,
+	`permissions` text NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`workspace_id`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `roles_ws_name_idx` ON `roles` (`workspace_id`,`name`);--> statement-breakpoint
+CREATE TABLE `sessions` (
+	`id` text PRIMARY KEY NOT NULL,
+	`token_hash` text NOT NULL,
+	`user_id` text NOT NULL,
+	`expires_at` integer NOT NULL,
+	`user_agent` text,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `sessions_token_hash_unique` ON `sessions` (`token_hash`);--> statement-breakpoint
+CREATE INDEX `sessions_user_idx` ON `sessions` (`user_id`);--> statement-breakpoint
 CREATE TABLE `uploads` (
 	`id` text PRIMARY KEY NOT NULL,
 	`workspace_id` text NOT NULL,
@@ -69,6 +115,7 @@ CREATE TABLE `users` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`email` text NOT NULL,
+	`password_hash` text DEFAULT '' NOT NULL,
 	`avatar_url` text,
 	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
 	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL

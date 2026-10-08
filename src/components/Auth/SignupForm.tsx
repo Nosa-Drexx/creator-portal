@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
@@ -13,7 +14,8 @@ import { signupSchema, type SignupInput } from "@/lib/validation/auth"
 import { AuthShell } from "./AuthShell"
 
 export function SignupForm() {
-  const signup = useSignUp()
+  const next = useSearchParams().get("next")
+  const signup = useSignUp(next)
   const form = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
     defaultValues: { name: "", email: "", password: "" },
@@ -31,7 +33,7 @@ export function SignupForm() {
       footer={
         <>
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-text-primary underline-offset-4 hover:underline">
+          <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="font-semibold text-text-primary underline-offset-4 hover:underline">
             Log in
           </Link>
         </>

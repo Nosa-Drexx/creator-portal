@@ -11,9 +11,9 @@ import { EVerificationStatus } from "@/enums/verification"
 import { useWorkspace } from "@/hooks/queries/use-workspace"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
 import { cn } from "@/lib/utils"
-import { isNavActive, NAV_ITEMS, type NavItem } from "./nav-items"
-
-const TABS = NAV_ITEMS.filter((item) => item.id !== "settings")
+import { EAction, EModule } from "@/constants/permissions"
+import { usePermissions } from "@/hooks/use-permissions"
+import { isNavActive, navItemsForPermissions, type NavItem } from "./nav-items"
 
 function Tab({ item, slug, pathname, dot }: { item: NavItem; slug: string; pathname: string; dot?: boolean }) {
   const active = isNavActive(item, slug, pathname)
@@ -35,21 +35,36 @@ function Tab({ item, slug, pathname, dot }: { item: NavItem; slug: string; pathn
         {dot && <span className="absolute top-0.5 right-2.5 size-1.5 rounded-full bg-warning ring-2 ring-surface" />}
       </span>
       <span className={cn("transition-colors", active ? "text-text-primary" : "text-text-tertiary")}>
-        {item.id === "verification" ? "Verify" : item.label}
+        {item.shortLabel ?? item.label}
       </span>
     </Link>
   )
 }
 
-/** Thumb-reach navigation for phones with a centred primary action */
+const TAB_PRIORITY: NavItem["id"][] = ["overview", "content", "purchases", "verification", "members"]
+
+/** Thumb-reach navigation with a centred upload action; tabs follow the member's permissions */
 export function MobileTabBar() {
   const slug = useWorkspaceSlug()
   const pathname = usePathname()
   const { data: workspace } = useWorkspace()
-  const needsVerification = !!workspace && workspace.verificationStatus !== EVerificationStatus.Verified
-  const [first, second, third, fourth] = TABS
+  const { permissions, can, loading } = usePermissions()
   // Editors get a focused screen with their own sticky action bar
-  if (/\/content\/(new|[^/]+\/edit)$/.test(pathname)) return null
+  if (loading || /\/content\/(new|[^/]+\/edit)$/.test(pathname)) return null
+
+  const allowed = navItemsForPermissions(permissions)
+  const tabs = TAB_PRIORITY.map((id) => allowed.find((item) => item.id === id)).filter(Boolean).slice(0, 4) as NavItem[]
+  const canUpload = can(EAction.Create, EModule.Content)
+  const needsVerification = !!workspace && workspace.verificationStatus !== EVerificationStatus.Verified
+  const renderTab = (item: NavItem) => (
+    <Tab
+      key={item.id}
+      item={item}
+      slug={slug}
+      pathname={pathname}
+      dot={item.id === "verification" && needsVerification}
+    />
+  )
 
   return (
     <nav
@@ -57,19 +72,19 @@ export function MobileTabBar() {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-stroke/70 bg-surface/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl backdrop-saturate-150 md:hidden"
     >
       <div className="mx-auto flex h-16 max-w-md items-stretch px-2">
-        <Tab item={first} slug={slug} pathname={pathname} />
-        <Tab item={second} slug={slug} pathname={pathname} />
-        <div className="flex flex-1 items-center justify-center">
-          <Link
-            href={routes.newContent(slug)}
-            aria-label="Upload video"
-            className="grid size-12 -translate-y-3 place-items-center rounded-2xl bg-brand text-brand-foreground shadow-[0_10px_24px_-8px_var(--brand)] ring-4 ring-canvas transition-transform duration-200 ease-out-soft active:scale-95"
-          >
-            <HugeiconsIcon icon={Add01Icon} size={22} strokeWidth={2.4} />
-          </Link>
-        </div>
-        <Tab item={third} slug={slug} pathname={pathname} />
-        <Tab item={fourth} slug={slug} pathname={pathname} dot={needsVerification} />
+        {tabs.slice(0, 2).map(renderTab)}
+        {canUpload && (
+          <div className="flex flex-1 items-center justify-center">
+            <Link
+              href={routes.newContent(slug)}
+              aria-label="Upload video"
+              className="grid size-12 -translate-y-3 place-items-center rounded-2xl bg-brand text-brand-foreground shadow-[0_10px_24px_-8px_var(--brand)] ring-4 ring-canvas transition-transform duration-200 ease-out-soft active:scale-95"
+            >
+              <HugeiconsIcon icon={Add01Icon} size={22} strokeWidth={2.4} />
+            </Link>
+          </div>
+        )}
+        {tabs.slice(2).map(renderTab)}
       </div>
     </nav>
   )
