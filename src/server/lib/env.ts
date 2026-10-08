@@ -22,6 +22,8 @@ const schema = z.object({
   DATABASE_AUTH_TOKEN: z.string().optional(),
   MEDIA_SIGNING_SECRET: z.string().min(16).default("local-dev-only-media-signing-secret"),
   UPLOAD_DIR: z.string().default(`${localDir}/uploads`),
+  // Set by connecting a Vercel Blob store; without it uploads stay on local disk
+  BLOB_READ_WRITE_TOKEN: z.string().optional(),
   AUTO_SEED: z
     .enum(["true", "false"])
     .default("true")
@@ -34,4 +36,5 @@ export const env = schema.parse({
   ...process.env,
   DATABASE_URL: pasted("DATABASE_URL", "TURSO_DATABASE_URL"),
   DATABASE_AUTH_TOKEN: pasted("DATABASE_AUTH_TOKEN", "TURSO_AUTH_TOKEN"),
+  BLOB_READ_WRITE_TOKEN: pasted("BLOB_READ_WRITE_TOKEN"),
 })

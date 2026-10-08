@@ -9,8 +9,8 @@ import { db } from "@/server/db/client"
 import { uploads } from "@/server/db/schema"
 import { Errors } from "@/server/lib/errors"
 import { newId } from "@/server/lib/ids"
+import { createUploadTarget, mediaUrl, objectSize } from "@/server/storage"
 import { writeObject } from "@/server/storage/local"
-import { signUrl } from "@/server/storage/signing"
 import type { UploadIntent, UploadIntentPayload } from "@/types/uploads"
 import type { Permission } from "@/constants/permissions"
 import { assertPermission, hasPermission } from "./permissions"
@@ -47,17 +47,17 @@ export async function createUploadIntent(ctx: TenantContext, payload: UploadInte
     sizeBytes: payload.sizeBytes,
   })
 
-  const { url, expiresAt } = signUrl("/api/uploads", "put", key, UPLOAD_URL_TTL)
+  const target = await createUploadTarget(key, payload.contentType, payload.sizeBytes, UPLOAD_URL_TTL)
   return {
     key,
-    uploadUrl: url,
+    uploadUrl: target.url,
     method: "PUT",
-    headers: { "Content-Type": payload.contentType },
-    expiresAt: expiresAt.toISOString(),
+    headers: target.headers,
+    expiresAt: target.expiresAt.toISOString(),
   }
 }
 
-/** Step 2: the signed PUT lands here (in production this would be the bucket itself) */
+/** Step 2 on local disk: the signed PUT lands here (with Vercel Blob or S3 it goes to the bucket) */
 export async function receiveUpload(key: string, body: ReadableStream<Uint8Array> | null) {
   const upload = await db.query.uploads.findFirst({ where: eq(uploads.key, key) })
   if (!upload) throw Errors.notFound("Upload")
@@ -70,6 +70,23 @@ export async function receiveUpload(key: string, body: ReadableStream<Uint8Array
 
   await db.update(uploads).set({ status: "complete", updatedAt: new Date() }).where(eq(uploads.id, upload.id))
   return { key, sizeBytes: written }
+}
+
+/**
+ * Step 3: the client confirms the PUT finished. Direct-to-storage uploads never touch the
+ * API, so the stored size is checked before the key can be attached to anything.
+ */
+export async function completeUpload(ctx: TenantContext, key: string) {
+  const upload = await db.query.uploads.findFirst({
+    where: and(eq(uploads.key, key), eq(uploads.workspaceId, ctx.workspace.id)),
+  })
+  if (!upload) throw Errors.notFound("Upload")
+  if (upload.status === "complete") return { key, sizeBytes: upload.sizeBytes }
+
+  const stored = await objectSize(key)
+  if (stored !== upload.sizeBytes) throw Errors.badRequest("Upload was incomplete. Please try again.")
+  await db.update(uploads).set({ status: "complete", updatedAt: new Date() }).where(eq(uploads.id, upload.id))
+  return { key, sizeBytes: stored }
 }
 
 /** Short-lived playback/preview URLs, only for keys inside the caller's workspace */
@@ -87,7 +104,7 @@ export async function signMediaKeys(ctx: TenantContext, keys: string[]) {
       where: and(eq(uploads.key, key), eq(uploads.workspaceId, ctx.workspace.id), eq(uploads.status, "complete")),
     })
     if (!owned) throw Errors.notFound("File")
-    result[key] = signUrl("/api/media", "get", key, MEDIA_URL_TTL).url
+    result[key] = await mediaUrl(key, MEDIA_URL_TTL)
   }
 
   return { urls: result, ttlSeconds: MEDIA_URL_TTL }
