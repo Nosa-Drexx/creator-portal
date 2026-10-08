@@ -4,6 +4,7 @@ The first version of the CreatorHub **Creator Portal**. Creators upload and publ
 
 |           |                                                                                                                                                                                                               |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Live demo** | **[creator-portal-khaki.vercel.app](https://creator-portal-khaki.vercel.app)**. Log in with a one-click demo account on the login page (password for every account: `creatorhub-demo1`). It runs on Vercel with a Turso database and Vercel Blob for uploads. |
 | **Docs**  | [Video architecture, diagram and cost estimate](docs/ARCHITECTURE.md) · [Product improvements](docs/PRODUCT.md) · [AI usage](AI-USAGE.md)                                                                     |
 | **Stack** | Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui · TanStack Query · axios · react-hook-form + zod · motion · Recharts · Drizzle ORM + libSQL (SQLite) · Vitest |
 
