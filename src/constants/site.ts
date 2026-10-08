@@ -1,5 +1,13 @@
-/** Every deployment sets NEXT_PUBLIC_APP_URL to its own origin so social previews resolve */
-export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+// Vercel's system URLs are set at build time, so previews still resolve if NEXT_PUBLIC_APP_URL is missing
+const vercelHost =
+  process.env.VERCEL_ENV === "production"
+    ? process.env.VERCEL_PROJECT_PRODUCTION_URL
+    : process.env.VERCEL_BRANCH_URL || process.env.VERCEL_URL
+
+/** Public origin without a trailing slash */
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_APP_URL || (vercelHost ? `https://${vercelHost}` : "http://localhost:3000")
+).replace(/\/+$/, "")
 
 export const SITE_NAME = "CreatorHub Studio"
 export const SITE_TITLE = "CreatorHub Studio | Publish and sell your video content"
