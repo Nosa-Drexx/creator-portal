@@ -51,11 +51,13 @@ export function ContentListPage() {
   const { can } = usePermissions()
   const columns = buildContentColumns(setToDelete, can(EAction.View, EModule.Analytics))
 
+  // No counts until the list loads, so a failure doesn't read as "0 videos"
+  const count = (n: number) => (data ? n : undefined)
   const statusOptions = [
-    { value: "all", label: "All", count: counts.all },
-    { value: EContentStatus.Published, label: "Published", count: counts.published },
-    { value: EContentStatus.Scheduled, label: "Scheduled", count: counts.scheduled },
-    { value: EContentStatus.Draft, label: "Drafts", count: counts.draft },
+    { value: "all", label: "All", count: count(counts.all) },
+    { value: EContentStatus.Published, label: "Published", count: count(counts.published) },
+    { value: EContentStatus.Scheduled, label: "Scheduled", count: count(counts.scheduled) },
+    { value: EContentStatus.Draft, label: "Drafts", count: count(counts.draft) },
   ]
 
   return (
