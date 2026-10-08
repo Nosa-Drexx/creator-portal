@@ -51,7 +51,8 @@ export function formatBytes(bytes: number | null) {
 }
 
 export function formatPercentChange(current: number, previous: number) {
-  if (previous === 0) return current > 0 ? null : 0
+  // No baseline means a percentage would be meaningless
+  if (previous === 0) return null
   return ((current - previous) / previous) * 100
 }
 
