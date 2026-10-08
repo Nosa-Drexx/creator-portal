@@ -13,7 +13,10 @@ export function ContentDetailSkeleton() {
           <Skeleton className="aspect-video w-full rounded-2xl" />
           <Skeleton className="h-20 rounded-2xl" />
         </div>
-        <Skeleton className="h-64 rounded-2xl" />
+        <div className="flex flex-col gap-5">
+          <Skeleton className="h-72 rounded-2xl" />
+          <Skeleton className="h-64 rounded-2xl" />
+        </div>
       </div>
     </div>
   )

@@ -22,6 +22,7 @@ import { useContentItem } from "@/hooks/queries/use-content"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
 import { isApiErrorCode } from "@/lib/axios"
 import { formatBytes, formatDateTime, formatDuration, formatPrice } from "@/lib/format"
+import { BuyerPreviewCard } from "../BuyerPreviewCard"
 import { DeleteContentModal } from "../ContentList/DeleteContentModal"
 import { ContentDetailSkeleton } from "./ContentDetailSkeleton"
 import { ContentBuyers } from "./ContentBuyers"
@@ -104,6 +105,14 @@ export function ContentDetailPage() {
         </Reveal>
 
         <Reveal delay={0.08} className="flex flex-col gap-5">
+          <BuyerPreviewCard
+            title={item.title}
+            priceCents={item.priceCents}
+            thumbnailKey={item.thumbnailKey}
+            durationSeconds={item.durationSeconds}
+            status={item.status}
+            hasVideo={!!item.videoKey}
+          />
           <SectionCard title="Details" bodyClassName="px-4 pb-2 sm:px-5">
             <dl className="divide-y divide-stroke">
               <MetaRow label="Duration" value={formatDuration(item.durationSeconds)} />
