@@ -22,10 +22,15 @@ Open **http://localhost:3000**. On the first request the app creates `.data/crea
 
 **Log in** with a one-click demo account on the login page, or with these credentials:
 
-| Account | Email | Password |
+Every account uses the password `creatorhub-demo1`.
+
+| Account | Email | What it shows |
 |---|---|---|
-| Amara Lewis (owns *Amara Studio* and *Wild Frames*) | `amara@creatorhub.dev` | `creatorhub-demo1` |
-| Theo Marsh (owns *Northbound Films*) | `theo@creatorhub.dev` | `creatorhub-demo1` |
+| **Amara Lewis**, Owner | `amara@creatorhub.dev` | Everything. Owns *Amara Studio* (verified) and *Wild Frames* (unverified) |
+| **Jordan Blake**, Admin | `jordan@creatorhub.dev` | Manages content and the team, but can't submit verification or grant ownership |
+| **Priya Shah**, Editor | `priya@creatorhub.dev` | Uploads and edits only. No dashboard, no sales, can't publish or delete |
+| **Sam Okafor**, Analyst | `sam@creatorhub.dev` | Read-only stats, content and purchases |
+| **Theo Marsh**, Owner | `theo@creatorhub.dev` | Owns *Northbound Films* and has a **pending invite** to Amara Studio |
 
 You can also **create an account**. New users go through a short onboarding step to create their first workspace.
 
@@ -58,7 +63,8 @@ Log in as **Amara Lewis**, who owns two workspaces. Switch between them from the
 5. **Multi-tenancy.** Create a workspace from the switcher (**New workspace**), or open another creator's workspace (`/w/northbound-films`) and get a 404.
 6. **Mobile.** Narrow the window to about 390px. You'll see a bottom tab bar with a centre upload button, card layouts instead of tables, bottom-sheet dialogs, and sticky primary actions.
 7. **Your profile.** Open the account menu (bottom of the sidebar, or top-right on mobile) and choose **Your profile** to change your name, password or profile photo (your email is your login, so it's read-only). Changing the password signs out your other sessions.
-8. **Collapsible sidebar.** Use the edge toggle or press **⌘B / Ctrl+B**. It's collapsed by default on tablets, and your choice is remembered.
+8. **Roles and permissions.** Log in as Priya (Editor) and Sam (Analyst) and compare the navigation, the content columns and the publish options. Opening a page you can't access by URL shows an access-denied screen. As Amara, open **Team** to invite members (you get a copyable invite link), change roles, and create custom roles with the permission matrix. Log in as Theo to accept his invitation from the workspace switcher.
+9. **Collapsible sidebar.** Use the edge toggle or press **⌘B / Ctrl+B**. It's collapsed by default on tablets, and your choice is remembered.
 
 ### Demo-state controls
 
@@ -115,6 +121,26 @@ src/
 - **Composable, reusable UI.** For example, `S3Image` renders storage keys (through short-lived signed URLs), public paths and `blob:` previews, with a shimmer and a fallback. `ResponsiveModal` is a dialog on desktop and a bottom sheet on mobile, and powers every confirmation. `DataTable` is generic, with server-side sorting.
 - **Small files.** No source file is longer than 350 lines. Large features are split into sections and hooks.
 
+### Roles and permissions
+
+Permissions are `action:module` strings (for example `publish:content` or `view:purchases`), and `manage:all` grants everything.
+
+- **Roles belong to a workspace.** Each workspace gets four built-in roles (Owner, Admin, Editor, Analyst) and can define custom ones in the permission-matrix editor.
+- **The server is the authority.** Every service checks the permission it needs (`assertPermission`), and sales and performance numbers are left out of responses for roles without `view:analytics`. Protections:
+  - You can't grant permissions you don't hold.
+  - Only owners can grant ownership.
+  - The last owner can't be removed or demoted.
+  - A role that's in use can't be deleted.
+- **The frontend guards are UX, not security.** They live in `components/shared/Permissions`:
+  - pure helpers (`canRead`, `canCreate`, `canPublish`…);
+  - a `usePermissions()` hook built on the workspace query;
+  - `<CanRead>`, `<CanCreate>`, `<CanUpdate>`, `<CanDelete>`, `<CanManage>` and `<CanTakeAction>` wrappers;
+  - `<RequirePermission>` on every route, with an `AccessDenied` fallback.
+
+  Navigation is filtered by permission (`navItemsForPermissions`), and login or workspace switching lands on the first page your role can open.
+- **Two separate publish locks.** "Your role can't publish" is distinct from "verify your identity". An Editor in a verified workspace gets the first message, not a misleading verification prompt.
+- **Invitations are bound to an email address.** They expire after 14 days, and the link token is stored hashed. There's no email sending in the demo: the inviter copies a link, and invitees also see pending invites in-app.
+
 ### Key technical choices
 
 | Choice | Why |
@@ -144,12 +170,21 @@ Not requested in the brief. I added it as the product improvement I chose to imp
 pnpm test
 ```
 
-There are 38 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
+There are 50 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
 
 - **The publishing rule at the endpoint:** unverified, pending and verified workspaces; create vs update; draft vs publish vs schedule.
 - **Tenant isolation:** foreign workspaces, foreign content IDs, purchase scoping, cross-tenant media signing, and per-user access.
 - **Workspace creation:** ownership, slug collisions, validation.
 - **Profile:** name updates (email can't be changed), password change signing out other sessions, avatar upload and serving, path-traversal and file-type rejection.
+- **Roles and permissions:**
+  - what each built-in role can and can't do at the endpoint;
+  - metrics hidden from roles without analytics;
+  - escalation blocked;
+  - last-owner protection;
+  - leaving a workspace;
+  - custom role rules;
+  - role changes applying on the next request.
+- **Invitations:** in-app accept, email-bound links, sign up and then accept, and revoked or re-sent links becoming invalid.
 - **Authentication:** 401 without a session, login, identical errors for unknown email vs wrong password, rate limiting, signup, and session invalidation on logout (a replayed cookie is rejected).
 - **Unit tests:** the publishing rule, content payload validation, and signed URL expiry and tampering.
 
@@ -174,7 +209,7 @@ Each change was also checked by hand in Chrome at desktop and 390px mobile width
 - **Scheduled content goes live when it's next read,** not from a background scheduler.
 - **Seeded media is public** (`/public/seed`). Uploaded media is private and signed.
 - **On Vercel without `DATABASE_URL`,** the database and uploads live in `/tmp` and reset on cold starts. Point `DATABASE_URL` at Turso for a persistent deployed demo. Local setup is fully persistent.
-- **Member invitations and role management UI are not built.** Roles are enforced, but only seeded.
+- **Invitations aren't emailed.** Invites appear in-app and as a copyable link, and sending them via an email provider is the next step. Role changes take effect on the member's next request.
 
 ## Time spent
 

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/shared/Logo"
 import { useSession } from "@/hooks/queries/use-session"
 import { useLogOut } from "@/hooks/mutations/use-auth-mutations"
+import { InvitationList } from "@/components/Invitations/InvitationList"
+import { useMyInvitations } from "@/hooks/queries/use-members"
 import { useCreateWorkspaceForm } from "./use-create-workspace-form"
 import { WorkspaceFormFields } from "./WorkspaceFormFields"
 
@@ -11,6 +13,7 @@ export function OnboardingPage() {
   const { data: session } = useSession()
   const logout = useLogOut()
   const { form, onSubmit, isPending } = useCreateWorkspaceForm()
+  const { data: invitations = [] } = useMyInvitations()
   const firstName = session?.user.name.split(" ")[0]
 
   return (
@@ -32,6 +35,13 @@ export function OnboardingPage() {
             someone else&apos;s.
           </p>
         </div>
+        {invitations.length > 0 && (
+          <div className="flex flex-col gap-2.5">
+            <span className="text-[13px] font-semibold">You&apos;ve been invited</span>
+            <InvitationList invitations={invitations} />
+            <span className="mt-2 text-center text-xs text-text-tertiary">or create your own</span>
+          </div>
+        )}
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5 rounded-2xl bg-surface p-5 shadow-card">
           <WorkspaceFormFields form={form} />
           <Button type="submit" size="xl" isLoading={isPending} className="mt-1 w-full">

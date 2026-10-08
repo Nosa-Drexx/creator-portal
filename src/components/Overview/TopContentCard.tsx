@@ -16,8 +16,12 @@ import { formatCompact, formatCurrency } from "@/lib/format"
 export function TopContentCard() {
   const slug = useWorkspaceSlug()
   const { data, isPending, error, refetch, isRefetching } = useContentList()
-  const top = (data ?? []).filter((c) => c.revenueCents > 0).sort((a, b) => b.revenueCents - a.revenueCents).slice(0, 5)
-  const maxRevenue = top[0]?.revenueCents ?? 1
+  const top = (data ?? [])
+    .map((c) => ({ ...c, revenueCents: c.revenueCents ?? 0, purchases: c.purchases ?? 0 }))
+    .filter((c) => c.revenueCents > 0)
+    .sort((a, b) => b.revenueCents - a.revenueCents)
+    .slice(0, 5)
+  const maxRevenue = top[0]?.revenueCents || 1
 
   return (
     <SectionCard

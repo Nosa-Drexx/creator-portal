@@ -14,7 +14,8 @@ interface DeleteContentModalProps {
 
 export function DeleteContentModal({ item, onClose, onDeleted }: DeleteContentModalProps) {
   const remove = useDeleteContent()
-  const hasBuyers = !!item && item.purchases > 0
+  const purchases = item?.purchases ?? 0
+  const hasBuyers = purchases > 0
 
   return (
     <ConfirmationModal
@@ -45,7 +46,7 @@ export function DeleteContentModal({ item, onClose, onDeleted }: DeleteContentMo
     >
       {hasBuyers && (
         <p className="rounded-lg bg-muted/70 p-3 text-[13px] leading-relaxed text-text-secondary">
-          {formatNumber(item.purchases)} {item.purchases === 1 ? "buyer has" : "buyers have"} purchased this. Their
+          {formatNumber(purchases)} {purchases === 1 ? "buyer has" : "buyers have"} purchased this. Their
           purchase records are kept for your reporting and payouts.
         </p>
       )}

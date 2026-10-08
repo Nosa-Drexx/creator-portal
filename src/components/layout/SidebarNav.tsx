@@ -10,17 +10,30 @@ import { EVerificationStatus } from "@/enums/verification"
 import { useWorkspace } from "@/hooks/queries/use-workspace"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
 import { cn } from "@/lib/utils"
-import { isNavActive, NAV_ITEMS } from "./nav-items"
+import { usePermissions } from "@/hooks/use-permissions"
+import { Skeleton } from "@/components/ui/skeleton"
+import { isNavActive, navItemsForPermissions } from "./nav-items"
 
 export function SidebarNav() {
   const slug = useWorkspaceSlug()
   const pathname = usePathname()
   const { data: workspace } = useWorkspace()
+  const { permissions, loading } = usePermissions()
   const needsVerification = workspace && workspace.verificationStatus !== EVerificationStatus.Verified
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-8 rounded-[10px]" />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <nav aria-label="Main" className="flex flex-col gap-0.5">
-      {NAV_ITEMS.map((item) => {
+      {navItemsForPermissions(permissions).map((item) => {
         const active = isNavActive(item, slug, pathname)
         return (
           <Tooltip key={item.id}>

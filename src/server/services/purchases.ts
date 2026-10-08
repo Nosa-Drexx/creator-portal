@@ -6,6 +6,7 @@ import { db } from "@/server/db/client"
 import { content, purchases } from "@/server/db/schema"
 import type { PaginatedResponse } from "@/types/common"
 import type { Purchase, PurchaseListParams } from "@/types/purchases"
+import { assertPermission } from "./permissions"
 import type { TenantContext } from "./tenant"
 
 /** Creators see enough to recognise a buyer, not their full address */
@@ -19,6 +20,7 @@ export async function listPurchases(
   ctx: TenantContext,
   params: Required<Pick<PurchaseListParams, "sort" | "order" | "page" | "limit">> & PurchaseListParams,
 ): Promise<PaginatedResponse<Purchase>> {
+  assertPermission(ctx, "view:purchases")
   const term = params.search ? `%${params.search}%` : null
   const where = and(
     eq(purchases.workspaceId, ctx.workspace.id),

@@ -14,6 +14,9 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { SearchInput } from "@/components/shared/SearchInput"
 import { SegmentedControl } from "@/components/shared/SegmentedControl"
 import { routes } from "@/constants/routes"
+import { CanCreate } from "@/components/shared/Permissions"
+import { EAction, EModule } from "@/constants/permissions"
+import { usePermissions } from "@/hooks/use-permissions"
 import { EContentStatus } from "@/enums/content"
 import { useContentList } from "@/hooks/queries/use-content"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -38,7 +41,8 @@ export function ContentListPage() {
   const { data, isPending, error, refetch, isRefetching } = useContentList()
   const { filters, setFilters, visible, counts, sort, hasActiveFilters, clear } = useContentFilters(data)
   const [toDelete, setToDelete] = useState<Content | null>(null)
-  const columns = buildContentColumns(setToDelete)
+  const { can } = usePermissions()
+  const columns = buildContentColumns(setToDelete, can(EAction.View, EModule.Analytics))
 
   const statusOptions = [
     { value: "all", label: "All", count: counts.all },
@@ -53,12 +57,14 @@ export function ContentListPage() {
         title="Content"
         description="Manage, publish and track every video in this workspace."
         actions={
-          <Button asChild variant="brand" className="max-md:hidden">
-            <Link href={routes.newContent(slug)}>
-              <HugeiconsIcon icon={Add01Icon} size={16} />
-              Upload video
-            </Link>
-          </Button>
+          <CanCreate module={EModule.Content}>
+            <Button asChild variant="brand" className="max-md:hidden">
+              <Link href={routes.newContent(slug)}>
+                <HugeiconsIcon icon={Add01Icon} size={16} />
+                Upload video
+              </Link>
+            </Button>
+          </CanCreate>
         }
       />
 
@@ -109,9 +115,11 @@ export function ContentListPage() {
               title="Upload your first video"
               description="Add a title, price and your video file. You can publish now, schedule it, or keep it as a draft."
               action={
-                <Button asChild variant="brand">
-                  <Link href={routes.newContent(slug)}>Upload video</Link>
-                </Button>
+                <CanCreate module={EModule.Content}>
+                  <Button asChild variant="brand">
+                    <Link href={routes.newContent(slug)}>Upload video</Link>
+                  </Button>
+                </CanCreate>
               }
             />
           )

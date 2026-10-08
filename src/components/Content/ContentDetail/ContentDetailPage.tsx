@@ -13,6 +13,8 @@ import { Reveal } from "@/components/shared/motion/Reveal"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { routes } from "@/constants/routes"
+import { CanDelete, CanRead, CanUpdate } from "@/components/shared/Permissions"
+import { EModule } from "@/constants/permissions"
 import { CONTENT_STATUS } from "@/constants/status"
 import { EContentStatus } from "@/enums/content"
 import { EErrorCode } from "@/enums/errors"
@@ -70,16 +72,20 @@ export function ContentDetailPage() {
             <h1 className="text-[24px] leading-tight font-bold sm:text-[28px]">{item.title}</h1>
           </div>
           <div className="flex shrink-0 gap-2">
-            <Button asChild variant="outline" className="max-sm:flex-1">
-              <Link href={routes.editContent(slug, item.id)}>
-                <HugeiconsIcon icon={PencilEdit02Icon} size={16} />
-                Edit
-              </Link>
-            </Button>
-            <Button variant="destructive" onClick={() => setConfirmDelete(true)} className="max-sm:flex-1">
-              <HugeiconsIcon icon={Delete02Icon} size={16} />
-              Delete
-            </Button>
+            <CanUpdate module={EModule.Content}>
+              <Button asChild variant="outline" className="max-sm:flex-1">
+                <Link href={routes.editContent(slug, item.id)}>
+                  <HugeiconsIcon icon={PencilEdit02Icon} size={16} />
+                  Edit
+                </Link>
+              </Button>
+            </CanUpdate>
+            <CanDelete module={EModule.Content}>
+              <Button variant="destructive" onClick={() => setConfirmDelete(true)} className="max-sm:flex-1">
+                <HugeiconsIcon icon={Delete02Icon} size={16} />
+                Delete
+              </Button>
+            </CanDelete>
           </div>
         </div>
       </div>
@@ -87,7 +93,9 @@ export function ContentDetailPage() {
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-6">
         <Reveal className="flex min-w-0 flex-col gap-5">
           <VideoPlayer item={item} />
-          <ContentStats item={item} />
+          <CanRead module={EModule.Analytics}>
+            <ContentStats item={item} />
+          </CanRead>
           <SectionCard title="Description" bodyClassName="p-4 pt-2 sm:p-5 sm:pt-2">
             <p className="text-sm leading-relaxed whitespace-pre-line text-text-secondary">
               {item.description || "No description yet. Buyers convert better when they know what they're getting."}
@@ -108,7 +116,9 @@ export function ContentDetailPage() {
               <MetaRow label="Last edited" value={formatDateTime(item.updatedAt)} />
             </dl>
           </SectionCard>
-          <ContentBuyers contentId={item.id} title={item.title} />
+          <CanRead module={EModule.Purchases}>
+            <ContentBuyers contentId={item.id} title={item.title} />
+          </CanRead>
         </Reveal>
       </div>
 

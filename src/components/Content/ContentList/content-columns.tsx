@@ -15,8 +15,10 @@ export function statusCaption(item: Content) {
   return `Edited ${formatTimeAgo(item.updatedAt)}`
 }
 
-export function buildContentColumns(onDelete: (item: Content) => void): DataTableColumn<Content>[] {
-  return [
+const METRIC_COLUMNS = ["views", "purchases", "revenue"]
+
+export function buildContentColumns(onDelete: (item: Content) => void, showMetrics = true): DataTableColumn<Content>[] {
+  const columns: DataTableColumn<Content>[] = [
     {
       id: "title",
       header: "Video",
@@ -83,4 +85,5 @@ export function buildContentColumns(onDelete: (item: Content) => void): DataTabl
       cell: ({ row }) => <ContentActionsMenu item={row.original} onDelete={onDelete} />,
     },
   ]
+  return showMetrics ? columns : columns.filter((c) => !METRIC_COLUMNS.includes(c.id ?? ""))
 }

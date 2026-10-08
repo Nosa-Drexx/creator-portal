@@ -29,7 +29,7 @@ export function LoginForm() {
       footer={
         <>
           New to CreatorHub?{" "}
-          <Link href="/signup" className="font-semibold text-text-primary underline-offset-4 hover:underline">
+          <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"} className="font-semibold text-text-primary underline-offset-4 hover:underline">
             Create an account
           </Link>
         </>

@@ -1,5 +1,4 @@
 import type { EVerificationStatus } from "@/enums/verification"
-import type { EWorkspaceRole } from "@/enums/workspace"
 
 export interface User {
   id: string
@@ -15,8 +14,10 @@ export interface Workspace {
   handle: string
   accentColor: string
   avatarUrl: string | null
-  role: EWorkspaceRole
+  role: { id: string; name: string; systemKey: string | null }
+  permissions: string[]
   verificationStatus: EVerificationStatus
+  /** Verified AND allowed to publish by role */
   canPublish: boolean
 }
 

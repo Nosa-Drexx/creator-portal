@@ -46,6 +46,23 @@ export const workspaces = sqliteTable("workspaces", {
   ...timestamps,
 })
 
+export const roles = sqliteTable(
+  "roles",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    /** Set for built-in roles, which can't be edited or deleted */
+    systemKey: text("system_key"),
+    permissions: text("permissions", { mode: "json" }).$type<string[]>().notNull(),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("roles_ws_name_idx").on(t.workspaceId, t.name)],
+)
+
 export const memberships = sqliteTable(
   "memberships",
   {
@@ -56,10 +73,35 @@ export const memberships = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    role: text("role", { enum: ["owner", "editor"] }).notNull(),
+    roleId: text("role_id")
+      .notNull()
+      .references(() => roles.id),
     ...timestamps,
   },
   (t) => [uniqueIndex("memberships_ws_user_idx").on(t.workspaceId, t.userId)],
+)
+
+export const invitations = sqliteTable(
+  "invitations",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    roleId: text("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
+    invitedById: text("invited_by_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** SHA-256 of the link token, same approach as sessions */
+    tokenHash: text("token_hash").notNull().unique(),
+    status: text("status", { enum: ["pending", "accepted", "declined", "revoked"] }).notNull().default("pending"),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+    ...timestamps,
+  },
+  (t) => [index("invitations_email_idx").on(t.email), index("invitations_ws_idx").on(t.workspaceId)],
 )
 
 export const verifications = sqliteTable("verifications", {
@@ -152,6 +194,8 @@ export type UserRow = typeof users.$inferSelect
 export type SessionRow = typeof sessions.$inferSelect
 export type WorkspaceRow = typeof workspaces.$inferSelect
 export type MembershipRow = typeof memberships.$inferSelect
+export type RoleRow = typeof roles.$inferSelect
+export type InvitationRow = typeof invitations.$inferSelect
 export type VerificationRow = typeof verifications.$inferSelect
 export type ContentRow = typeof content.$inferSelect
 export type PurchaseRow = typeof purchases.$inferSelect

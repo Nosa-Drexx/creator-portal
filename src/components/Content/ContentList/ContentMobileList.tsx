@@ -54,8 +54,8 @@ export function ContentMobileList({ items, onDelete }: ContentMobileListProps) {
               </div>
               <div className="mt-auto flex items-center gap-3 text-xs text-text-secondary tabular">
                 <span className="font-semibold text-text-primary">{formatPrice(item.priceCents)}</span>
-                {item.views > 0 && <span>{formatCompact(item.views)} views</span>}
-                {item.revenueCents > 0 && <span>{formatCurrency(item.revenueCents, { whole: true })} earned</span>}
+                {!!item.views && <span>{formatCompact(item.views)} views</span>}
+                {!!item.revenueCents && <span>{formatCurrency(item.revenueCents, { whole: true })} earned</span>}
               </div>
             </div>
           </li>

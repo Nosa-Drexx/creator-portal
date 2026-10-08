@@ -22,7 +22,7 @@ export function WorkspaceCard() {
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-base font-bold">{workspace.name}</span>
           <span className="text-[13px] text-text-tertiary">
-            {workspace.handle} · <span className="capitalize">{workspace.role}</span>
+            {workspace.handle} · {workspace.role.name}
           </span>
         </div>
         <StatusBadge tone={verification.tone} label={verification.label} />

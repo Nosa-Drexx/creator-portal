@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Logout01Icon, Settings02Icon, UserIcon } from "@hugeicons/core-free-icons"
+import { Logout01Icon, Settings02Icon, UserGroupIcon, UserIcon } from "@hugeicons/core-free-icons"
+import { CanRead } from "@/components/shared/Permissions"
+import { EModule } from "@/constants/permissions"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,6 +66,16 @@ export function UserMenu({ detailed, align = "start", className }: UserMenuProps
               Your profile
             </Link>
           </DropdownMenuItem>
+        )}
+        {slug && (
+          <CanRead module={EModule.Members}>
+            <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
+              <Link href={routes.members(slug)}>
+                <HugeiconsIcon icon={UserGroupIcon} size={16} />
+                Team
+              </Link>
+            </DropdownMenuItem>
+          </CanRead>
         )}
         {slug && (
           <DropdownMenuItem asChild className="gap-2.5 rounded-lg">

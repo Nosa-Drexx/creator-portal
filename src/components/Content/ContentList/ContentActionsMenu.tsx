@@ -12,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { routes } from "@/constants/routes"
+import { CanDelete, CanUpdate } from "@/components/shared/Permissions"
+import { EModule } from "@/constants/permissions"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
 import type { Content } from "@/types/content"
 
@@ -41,21 +43,21 @@ export function ContentActionsMenu({ item, onDelete }: ContentActionsMenuProps) 
             View
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
-          <Link href={routes.editContent(slug, item.id)}>
-            <HugeiconsIcon icon={PencilEdit02Icon} size={16} />
-            Edit
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          variant="destructive"
-          className="gap-2.5 rounded-lg"
-          onSelect={() => onDelete(item)}
-        >
-          <HugeiconsIcon icon={Delete02Icon} size={16} />
-          Delete
-        </DropdownMenuItem>
+        <CanUpdate module={EModule.Content}>
+          <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
+            <Link href={routes.editContent(slug, item.id)}>
+              <HugeiconsIcon icon={PencilEdit02Icon} size={16} />
+              Edit
+            </Link>
+          </DropdownMenuItem>
+        </CanUpdate>
+        <CanDelete module={EModule.Content}>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" className="gap-2.5 rounded-lg" onSelect={() => onDelete(item)}>
+            <HugeiconsIcon icon={Delete02Icon} size={16} />
+            Delete
+          </DropdownMenuItem>
+        </CanDelete>
       </DropdownMenuContent>
     </DropdownMenu>
   )
