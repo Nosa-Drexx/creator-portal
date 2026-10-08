@@ -63,7 +63,7 @@ Log in as **Amara Lewis**, who owns two workspaces. Switch between them from the
 5. **Multi-tenancy.** Create a workspace from the switcher (**New workspace**), or open another creator's workspace (`/w/northbound-films`) and get a 404.
 6. **Mobile.** Narrow the window to about 390px. You'll see a bottom tab bar with a centre upload button, card layouts instead of tables, bottom-sheet dialogs, and sticky primary actions.
 7. **Your profile and logging out.** Open the account menu (your name at the bottom of the sidebar, or your avatar top-right on mobile) for **Your profile**, **Team** and **Log out**. You can also log out from **Demo & settings → Account**. In your profile you can change your name, password or profile photo (your email is your login, so it's read-only). Changing the password signs out your other sessions.
-8. **Roles and permissions.** Log in as Priya (Editor) and Sam (Analyst) and compare the navigation, the content columns and the publish options. Opening a page you can't access by URL shows an access-denied screen. As Amara, open **Team** to invite members (you get a copyable invite link), change roles, and create custom roles with the permission matrix. Log in as Theo to accept his invitation from the workspace switcher.
+8. **Roles and permissions.** Log in as Priya (Editor) and Sam (Analyst) and compare the navigation, the content columns and the publish options. Opening a page you can't access by URL shows an access-denied screen. As Amara, open **Team** to invite members (you get an invite link, and **Copy link** on a pending invite copies it again), change roles, and create custom roles with the permission matrix. Open an invite link while signed out to see the public invite page: it offers sign up or log in for the invited email. Log in as Theo to accept his invitation from the workspace switcher.
 9. **Collapsible sidebar.** Use the edge toggle or press **⌘B / Ctrl+B**. It's collapsed by default on tablets, and your choice is remembered.
 
 ### Demo-state controls
@@ -139,7 +139,7 @@ Permissions are `action:module` strings (for example `publish:content` or `view:
 
   Navigation is filtered by permission (`navItemsForPermissions`), and login or workspace switching lands on the first page your role can open.
 - **Two separate publish locks.** "Your role can't publish" is distinct from "verify your identity". An Editor in a verified workspace gets the first message, not a misleading verification prompt.
-- **Invitations are bound to an email address.** They expire after 14 days, and the link token is stored hashed. There's no email sending in the demo: the inviter copies a link, and invitees also see pending invites in-app.
+- **Invitations are bound to an email address.** They expire after 14 days. The token is looked up by its hash, and an AES-256-GCM encrypted copy lets admins copy the link again until it's accepted, declined or revoked. There's no email sending in the demo: the inviter copies a link, and invitees also see pending invites in-app.
 
 ### Additional feature: branding and SEO
 
@@ -178,7 +178,7 @@ Not requested in the brief. I added it as the product improvement I chose to imp
 pnpm test
 ```
 
-There are 51 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
+There are 54 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
 
 - **The publishing rule at the endpoint:** unverified, pending and verified workspaces; create vs update; draft vs publish vs schedule.
 - **Tenant isolation:** foreign workspaces, foreign content IDs, purchase scoping, cross-tenant media signing, and per-user access.
@@ -192,7 +192,7 @@ There are 51 tests. The API tests call the **real route handlers** against a thr
   - leaving a workspace;
   - custom role rules;
   - role changes applying on the next request.
-- **Invitations:** in-app accept, email-bound links, sign up and then accept, and revoked or re-sent links becoming invalid.
+- **Invitations:** in-app accept, email-bound links, sign up and then accept, the public preview, copying the same link again (permission enforced), and accepted, revoked or re-sent links becoming invalid.
 - **Authentication:** 401 without a session, login, identical errors for unknown email vs wrong password, rate limiting, signup, and session invalidation on logout (a replayed cookie is rejected).
 - **Unit tests:** the publishing rule, content payload validation, and signed URL expiry and tampering.
 

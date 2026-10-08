@@ -1,6 +1,10 @@
 "use client"
 
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { landingPathFor } from "@/components/layout/nav-items"
 import { EAction, EModule } from "@/constants/permissions"
+import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
 import { usePermissions } from "@/hooks/use-permissions"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AccessDenied } from "./AccessDenied"
@@ -32,13 +36,25 @@ interface RequirePermissionProps {
   /** Grants access if the action is allowed on ANY of these modules */
   anyOf?: EModule[]
   fallback?: React.ReactNode
+  /** For entry pages (the workspace home): send the member to a page they can open instead */
+  redirectIfDenied?: boolean
   children: React.ReactNode
 }
 
 /** Page-level guard: skeleton while loading, AccessDenied when not allowed */
-export function RequirePermission({ module, action = EAction.View, anyOf, fallback, children }: RequirePermissionProps) {
+export function RequirePermission({ module, action = EAction.View, anyOf, fallback, redirectIfDenied, children }: RequirePermissionProps) {
   const { can, loading } = usePermissions()
-  if (loading) return <>{fallback ?? <Skeleton className="h-80 rounded-2xl" />}</>
+  const skeleton = <>{fallback ?? <Skeleton className="h-80 rounded-2xl" />}</>
+  if (loading) return skeleton
   const allowed = anyOf ? anyOf.some((m) => can(action, m)) : can(action, module)
-  return <>{allowed ? children : <AccessDenied />}</>
+  if (allowed) return <>{children}</>
+  return redirectIfDenied ? <RedirectToLanding>{skeleton}</RedirectToLanding> : <AccessDenied />
+}
+
+function RedirectToLanding({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const slug = useWorkspaceSlug()
+  const { permissions } = usePermissions()
+  useEffect(() => router.replace(landingPathFor(slug, permissions)), [router, slug, permissions])
+  return <>{children}</>
 }

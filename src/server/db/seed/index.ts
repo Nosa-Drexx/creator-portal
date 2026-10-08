@@ -5,6 +5,7 @@ import { statSync } from "node:fs"
 import path from "node:path"
 import { ESystemRole } from "@/constants/permissions"
 import { hashPassword } from "@/server/auth/password"
+import { encrypt } from "@/server/lib/crypto"
 import { createSystemRoles } from "@/server/services/system-roles"
 import {
   DEMO_PASSWORD,
@@ -166,13 +167,15 @@ export async function seedDatabase(db: Database, now = new Date()) {
   ])
 
   // Theo has a pending invite, so the accept flow can be tried by logging in as him
+  const theoInviteToken = randomBytes(24).toString("base64url")
   await db.insert(schema.invitations).values({
     id: "inv_theo_studio",
     workspaceId: WORKSPACES.studio.id,
     email: OTHER_USER.email,
     roleId: "rol_studio_producer",
     invitedById: DEMO_USER.id,
-    tokenHash: createHash("sha256").update(randomBytes(32)).digest("base64url"),
+    tokenHash: createHash("sha256").update(theoInviteToken).digest("base64url"),
+    tokenCiphertext: encrypt(theoInviteToken, "invitation-token"),
     expiresAt: new Date(now.getTime() + 14 * DAY_MS),
   })
 
