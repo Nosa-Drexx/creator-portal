@@ -4,13 +4,12 @@ import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Delete02Icon, Image02Icon, PencilEdit02Icon, Video01Icon } from "@hugeicons/core-free-icons"
+import { Delete02Icon, PencilEdit02Icon, Video01Icon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
 import { BackLink } from "@/components/shared/BackLink"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { ErrorState } from "@/components/shared/ErrorState"
 import { Reveal } from "@/components/shared/motion/Reveal"
-import { S3Image } from "@/components/shared/S3Image"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { routes } from "@/constants/routes"
@@ -23,6 +22,7 @@ import { useContentItem } from "@/hooks/queries/use-content"
 import { useWorkspaceSlug } from "@/hooks/use-workspace-slug"
 import { isApiErrorCode } from "@/lib/axios"
 import { formatBytes, formatDateTime, formatDuration, formatPrice } from "@/lib/format"
+import { BuyerPreviewCard } from "../BuyerPreviewCard"
 import { DeleteContentModal } from "../ContentList/DeleteContentModal"
 import { ContentDetailSkeleton } from "./ContentDetailSkeleton"
 import { ContentBuyers } from "./ContentBuyers"
@@ -105,20 +105,14 @@ export function ContentDetailPage() {
         </Reveal>
 
         <Reveal delay={0.08} className="flex flex-col gap-5">
-          <SectionCard title="Thumbnail" description="What buyers see before they play." bodyClassName="p-4 pt-1 sm:p-5 sm:pt-1">
-            <S3Image
-              src={item.thumbnailKey}
-              alt={`${item.title} thumbnail`}
-              sizes="320px"
-              containerClassName="aspect-video w-full rounded-xl"
-              fallback={
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-xs text-text-tertiary">
-                  <HugeiconsIcon icon={Image02Icon} size={20} />
-                  No thumbnail yet
-                </div>
-              }
-            />
-          </SectionCard>
+          <BuyerPreviewCard
+            title={item.title}
+            priceCents={item.priceCents}
+            thumbnailKey={item.thumbnailKey}
+            durationSeconds={item.durationSeconds}
+            status={item.status}
+            hasVideo={!!item.videoKey}
+          />
           <SectionCard title="Details" bodyClassName="px-4 pb-2 sm:px-5">
             <dl className="divide-y divide-stroke">
               <MetaRow label="Duration" value={formatDuration(item.durationSeconds)} />
