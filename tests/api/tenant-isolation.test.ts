@@ -33,7 +33,7 @@ describe("tenant isolation", () => {
   it("only lists purchases from the current workspace", async () => {
     const res = await listPurchases(req("/api/workspaces/amara-studio/purchases?limit=100"), ctx({ slug: "amara-studio" }))
     const { data } = await json(res)
-    expect(data.meta.total).toBe(1223)
+    expect(data.meta.total).toBe(1762)
     expect(data.data.every((p: { id: string }) => p.id.startsWith("pur_studio_"))).toBe(true)
   })
 

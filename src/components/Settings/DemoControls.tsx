@@ -92,7 +92,7 @@ export function DemoControls() {
       </SettingRow>
       <SettingRow
         title="Reset demo data"
-        description="Restores the seeded workspaces, 18 videos and 1,292 purchases. Uploaded files are cleared."
+        description="Restores the seeded workspaces, 30 videos and 1,831 purchases. Uploaded files are cleared."
       >
         <Button variant="outline" size="sm" onClick={() => setConfirmReset(true)}>
           <HugeiconsIcon icon={RefreshIcon} size={14} />

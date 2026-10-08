@@ -53,13 +53,13 @@ Log in as **Amara Lewis**, who owns two workspaces. Switch between them from the
 
 | Workspace | State | Use it to see |
 |---|---|---|
-| **Amara Studio** (`/w/amara-studio`) | Verified, 14 videos, 1,223 purchases | Dashboard, chart ranges, content table, purchase search, filters, sorting and pagination, edit, delete |
+| **Amara Studio** (`/w/amara-studio`) | Verified, 26 videos, 1,762 purchases | Dashboard, chart ranges, content table with pagination, purchase search, filters, sorting and pagination, edit, delete |
 | **Wild Frames** (`/w/wild-frames`) | **Unverified**, 3 drafts, no sales | Empty states and the **publishing gate** |
 
 1. **Publishing rule.** In *Wild Frames*, click **Upload video** and try **Publish now**. You'll get a "Verify to publish" prompt that offers to save your work as a draft. The API enforces the same rule: `POST`/`PUT` content with `published` or `scheduled` returns `403 VERIFICATION_REQUIRED`.
 2. **Upload.** Drop any MP4 into the editor. There's real upload progress (bytes, speed, time left), cancel and retry, **"Use frame as thumbnail"**, and a live buyer preview. A sample clip is at `public/seed/videos/sample-reel.mp4`.
 3. **Verification.** Open **Verification** in *Wild Frames*. Personal info → ID document → selfie (camera, or upload) → review → submitted. The simulated review approves in about 20 seconds and publishing unlocks **without a refresh**. Refresh mid-wizard and your progress is kept.
-4. **Purchases.** Search by buyer, email, video or country. Filter by status, sort by date or amount, and paginate. All of it is server-side and kept in the URL, so filtered views can be shared.
+4. **Content and purchases.** The Content table paginates 10 per page client-side, with the page, filters and sort kept in the URL. On Purchases you can search by buyer, email, video or country. Filter by status, sort by date or amount, and paginate. All of it is server-side and kept in the URL, so filtered views can be shared.
 5. **Multi-tenancy.** Create a workspace from the switcher (**New workspace**), or open another creator's workspace (`/w/northbound-films`) and get a 404.
 6. **Mobile.** Narrow the window to about 390px. You'll see a bottom tab bar with a centre upload button, card layouts instead of tables, bottom-sheet dialogs, and sticky primary actions.
 7. **Your profile and logging out.** Open the account menu (your name at the bottom of the sidebar, or your avatar top-right on mobile) for **Your profile**, **Team** and **Log out**. You can also log out from **Demo & settings → Account**. In your profile you can change your name, password or profile photo (your email is your login, so it's read-only). Changing the password signs out your other sessions.
@@ -81,7 +81,7 @@ Log in as **Amara Lewis**, who owns two workspaces. Switch between them from the
 
 - **Records persist across refreshes and server restarts.** Everything is stored in a SQLite file (`.data/creatorhub.db`) and uploads in `.data/uploads`. Both are git-ignored.
 - **To reset:** use **Demo & settings → Reset demo data**, or run `pnpm db:reset`, or delete the `.data/` folder (it's re-created and re-seeded on the next request).
-- **Seed:** 3 workspaces, 18 videos (Published, Scheduled and Draft) and 1,292 purchases (Completed, Pending, Refunded and Failed) spread over 12 months. The data is synthetic and deterministic, with dates relative to "now" so the dashboard always looks current.
+- **Seed:** 3 workspaces, 30 videos (Published, Scheduled and Draft) and 1,831 purchases (Completed, Pending, Refunded and Failed) spread over 12 months. The data is synthetic and deterministic, with dates relative to "now" so the dashboard always looks current.
 
 ---
 
