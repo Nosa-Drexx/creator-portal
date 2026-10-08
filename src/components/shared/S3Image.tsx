@@ -53,7 +53,8 @@ export function S3Image({
               alt={alt}
               fill
               sizes={sizes}
-              unoptimized={signedUrl.startsWith("blob:") || signedUrl.startsWith("/api/")}
+              // Signed URLs expire, so caching optimized copies of them is wasted work
+              unoptimized={!signedUrl.startsWith("/") || signedUrl.startsWith("/api/")}
               onLoad={() => setLoaded(true)}
               onError={() => setFailed(true)}
               className={cn(

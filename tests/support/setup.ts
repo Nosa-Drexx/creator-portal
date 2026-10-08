@@ -8,6 +8,8 @@ const dir = mkdtempSync(path.join(tmpdir(), "creatorhub-test-"))
 process.env.DATABASE_URL = `file:${path.join(dir, "test.db")}`
 process.env.UPLOAD_DIR = path.join(dir, "uploads")
 process.env.VERIFICATION_REVIEW_SECONDS = "3600"
+// Tests always use local disk, even if a Blob token is set in the shell
+delete process.env.BLOB_READ_WRITE_TOKEN
 
 export const cookieJar = new Map<string, string>()
 

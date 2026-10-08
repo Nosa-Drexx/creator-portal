@@ -2,7 +2,7 @@ import { Errors } from "@/server/lib/errors"
 import { handle } from "@/server/lib/http"
 import { requireUser } from "@/server/lib/session"
 import { avatarKey } from "@/server/services/profile"
-import { readObject, statObject } from "@/server/storage/local"
+import { openObject } from "@/server/storage"
 
 const TYPES: Record<string, string> = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" }
 
@@ -12,13 +12,12 @@ export const GET = handle(
     await requireUser()
     const { userId, file } = await ctx.params
     if (!/^usr_[a-z0-9_]+$/i.test(userId) || !/^[a-f0-9-]{36}\.(jpg|png|webp)$/.test(file)) throw Errors.notFound("Avatar")
-    const key = avatarKey(userId, file)
-    const stat = await statObject(key)
-    if (!stat) throw Errors.notFound("Avatar")
-    return new Response(readObject(key), {
+    const object = await openObject(avatarKey(userId, file))
+    if (!object) throw Errors.notFound("Avatar")
+    return new Response(object.stream, {
       headers: {
         "Content-Type": TYPES[file.split(".").pop() ?? ""] ?? "application/octet-stream",
-        "Content-Length": String(stat.size),
+        "Content-Length": String(object.size),
         "Cache-Control": "private, max-age=31536000, immutable",
       },
     })

@@ -110,7 +110,7 @@ src/
 └── server/                   # Backend only (guarded by `server-only`)
     ├── db/                   # Drizzle schema, migrations, seed
     ├── services/             # Business rules: publishing, tenancy, verification, analytics
-    ├── storage/              # Local object storage + HMAC URL signing
+    ├── storage/              # Storage drivers (Vercel Blob or local disk) + HMAC URL signing
     └── lib/                  # Route wrapper, errors, env, session
 ```
 
@@ -179,11 +179,12 @@ Not requested in the brief. I added it as the product improvement I chose to imp
 pnpm test
 ```
 
-There are 55 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
+There are 58 tests. The API tests call the **real route handlers** against a throwaway SQLite database.
 
 - **The publishing rule at the endpoint:** unverified, pending and verified workspaces; create vs update; draft vs publish vs schedule.
 - **Tenant isolation:** foreign workspaces, foreign content IDs, purchase scoping, cross-tenant media signing, and per-user access.
 - **Workspace creation:** ownership, slug collisions, validation.
+- **Upload completion:** a key is only confirmed once its file has actually arrived, confirming twice is harmless, and another workspace can't confirm it.
 - **Profile:** name updates (email can't be changed), password change signing out other sessions, avatar upload and serving, path-traversal and file-type rejection.
 - **Roles and permissions:**
   - what each built-in role can and can't do at the endpoint;
@@ -218,7 +219,8 @@ Each change was also checked by hand in Chrome at desktop and 390px mobile width
 - **Uploads are single-request PUTs,** capped at 500 MB in the demo. Production would use resumable multipart uploads (described in the architecture doc).
 - **Scheduled content goes live when it's next read,** not from a background scheduler.
 - **Seeded media is public** (`/public/seed`). Uploaded media is private and signed. All seeded videos play one short bundled clip, so they honestly report its real 8-second length and size. Videos you upload show their own.
-- **On Vercel without `DATABASE_URL`,** the database and uploads live in `/tmp` and reset on cold starts. Point `DATABASE_URL` at Turso for a persistent deployed demo. Local setup is fully persistent.
+- **On Vercel without `DATABASE_URL`,** the database lives in `/tmp` and resets on cold starts. Point `DATABASE_URL` at Turso for a persistent deployed demo. Local setup is fully persistent.
+- **Uploads use Vercel Blob in the deployed demo, local disk everywhere else.** File upload wasn't the focus of the brief, so rather than wiring up S3 and CloudFront, the deployment uses a private Vercel Blob store when `BLOB_READ_WRITE_TOKEN` is set. The flow is the same as the S3 design in [ARCHITECTURE.md](docs/ARCHITECTURE.md): a presigned PUT straight from the browser, a confirm step that checks the stored size, and short-lived presigned GETs for playback. Without the token, files go to `.data/uploads` as before, so local setup needs nothing extra.
 - **Invitations aren't emailed.** Invites appear in-app and as a copyable link, and sending them via an email provider is the next step. Role changes take effect on the member's next request.
 
 ## Time spent

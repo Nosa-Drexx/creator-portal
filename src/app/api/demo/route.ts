@@ -1,11 +1,8 @@
-import { rm } from "node:fs/promises"
-import path from "node:path"
 import { cookies } from "next/headers"
 import { z } from "zod"
 import { DEMO_COOKIES, EDemoFault } from "@/constants/demo"
 import { EVerificationStatus } from "@/enums/verification"
 import { resetDatabase } from "@/server/db/setup"
-import { env } from "@/server/lib/env"
 import { eq } from "drizzle-orm"
 import { createSession } from "@/server/auth/sessions"
 import { db } from "@/server/db/client"
@@ -15,6 +12,7 @@ import { requireUser } from "@/server/lib/session"
 import { assertPermission } from "@/server/services/permissions"
 import { requireTenant } from "@/server/services/tenant"
 import { setVerificationStatus } from "@/server/services/verification"
+import { clearObjects } from "@/server/storage"
 
 const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("reset") }),
@@ -42,7 +40,7 @@ export const POST = handle(
     const jar = await cookies()
 
     if (body.action === "reset") {
-      await rm(path.resolve(env.UPLOAD_DIR), { recursive: true, force: true })
+      await clearObjects()
       jar.delete(DEMO_COOKIES.fault)
       const result = await resetDatabase()
       // Reseeding clears sessions; keep a seeded reviewer signed in

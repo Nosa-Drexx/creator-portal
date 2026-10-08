@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { validateUploadFile } from "@/constants/uploads"
 import type { EUploadKind } from "@/enums/uploads"
 import { getApiErrorMessage } from "@/lib/axios"
-import { createUploadIntent } from "@/services/api/uploads"
+import { completeUpload, createUploadIntent } from "@/services/api/uploads"
 import { useWorkspaceSlug } from "./use-workspace-slug"
 
 export type UploadStatus = "idle" | "uploading" | "success" | "error" | "cancelled"
@@ -54,7 +54,7 @@ function putWithProgress(
   })
 }
 
-/** Two-step upload: ask the API for a signed URL, then PUT the file straight to storage */
+/** Ask the API for a signed URL, PUT the file straight to storage, then confirm it landed */
 export function useFileUpload(kind: EUploadKind) {
   const slug = useWorkspaceSlug()
   const [state, setState] = useState<UploadState>(INITIAL)
@@ -94,6 +94,7 @@ export function useFileUpload(kind: EUploadKind) {
             bytesPerSecond: seconds > 0 ? loaded / seconds : 0,
           }))
         })
+        await completeUpload(slug, intent.key)
         setState((s) => ({ ...s, status: "success", progress: 100, loaded: file.size, key: intent.key }))
         return intent.key
       } catch (error) {

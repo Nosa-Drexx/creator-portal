@@ -6,6 +6,11 @@ export async function createUploadIntent(slug: string, payload: UploadIntentPayl
   return data.data
 }
 
+/** Confirms a finished PUT so the key can be attached to content or verification */
+export async function completeUpload(slug: string, key: string) {
+  await apiClient.post(`/workspaces/${slug}/uploads/complete`, { key })
+}
+
 export async function signMediaKeys(slug: string, keys: string[]) {
   const { data } = await apiClient.post<Envelope<{ urls: Record<string, string>; ttlSeconds: number }>>(
     `/workspaces/${slug}/media/sign`,

@@ -9,7 +9,7 @@ import { db } from "@/server/db/client"
 import { sessions, users, type UserRow } from "@/server/db/schema"
 import { AppError, Errors } from "@/server/lib/errors"
 import { EErrorCode } from "@/enums/errors"
-import { writeObject } from "@/server/storage/local"
+import { saveObject } from "@/server/storage"
 
 const EXTENSIONS: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }
 
@@ -45,7 +45,7 @@ export async function saveAvatar(user: UserRow, contentType: string, body: Reada
   if (!AVATAR_TYPES.includes(contentType)) throw Errors.badRequest("Use a JPG, PNG or WebP image")
   if (!body) throw Errors.badRequest("Missing image")
   const file = `${randomUUID()}.${EXTENSIONS[contentType]}`
-  await writeObject(avatarKey(user.id, file), body, AVATAR_MAX_BYTES)
+  await saveObject(avatarKey(user.id, file), body, AVATAR_MAX_BYTES, contentType)
   // The file name is the cache-buster, so the URL can be cached aggressively
   const avatarUrl = `/api/avatars/${user.id}/${file}`
   const [row] = await db.update(users).set({ avatarUrl, updatedAt: new Date() }).where(eq(users.id, user.id)).returning()
