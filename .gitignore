@@ -43,3 +43,6 @@ next-env.d.ts
 # local database & uploads
 /.data
 !.env.example
+
+# Claude Code agent worktrees
+.claude/worktrees/
